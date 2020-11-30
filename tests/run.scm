@@ -2,5 +2,5 @@
         (only (srfi 158) generator generator->list)
         (test))
 
-(include "tests/ideque-tests.scm")
+(include "ideque-tests.scm")
 (test-exit)
