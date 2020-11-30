@@ -32,4 +32,6 @@
           (chicken base)
           (srfi 1)
           (only (srfi 158) generator->list))
+
+  (include "r7rs-shim.scm")
   (include "ideque-impl.scm"))
