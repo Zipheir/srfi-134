@@ -1,7 +1,5 @@
-(define-library (ideque)
-  (import (scheme base) (scheme case-lambda)
-          (srfi 1) (srfi 9) (srfi 121))
-  (export ideque ideque-tabulate ideque-unfold ideque-unfold-right 
+(module (ideque)
+  (ideque ideque-tabulate ideque-unfold ideque-unfold-right
           ideque? ideque-empty? ideque= ideque-any ideque-every
 
           ideque-front ideque-add-front ideque-remove-front
@@ -18,15 +16,19 @@
           ideque-for-each ideque-for-each-right
           ideque-fold ideque-fold-right
           ideque-append-map
-          
+
           ideque-filter ideque-remove ideque-partition
 
           ideque-find ideque-find-right
           ideque-take-while ideque-take-while-right
           ideque-drop-while ideque-drop-while-right
           ideque-span ideque-break
-          
+
           list->ideque ideque->list
           generator->ideque ideque->generator
           )
+  (import (scheme)
+          (only (chicken base) include define-record-type case-lambda)
+          (srfi 1)
+          (srfi 158))
   (include "ideque-impl.scm"))
