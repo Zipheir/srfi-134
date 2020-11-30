@@ -1,5 +1,3 @@
-;; Requires srfi-1 and srfi-121 (generators)
-
 (test-group "ideque"
 
 (test-group "ideque/constructors"
@@ -13,7 +11,7 @@
        (ideque->list (ideque-unfold-right zero? values (lambda (n) (- n 1)) 10)))
  (test '(0 2 4 6 8 10)
        (ideque->list (ideque-tabulate 6 (lambda (n) (* n 2)))))
- 
+
  ;; corner cases
  (test '() (ideque->list
             (ideque-unfold (lambda (n) #t) values (lambda (n) (+ n 1)) 0)))
@@ -199,4 +197,3 @@
  )
 
 ) ;; end test-group "ideque"
-
