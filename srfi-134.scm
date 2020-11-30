@@ -28,7 +28,7 @@
           generator->ideque ideque->generator
           )
   (import (scheme)
-          (only (chicken base) include define-record-type case-lambda)
+          (chicken base)
           (srfi 1)
-          (srfi 158))
+          (only (srfi 158) generator->list))
   (include "ideque-impl.scm"))
