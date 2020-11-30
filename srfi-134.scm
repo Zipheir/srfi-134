@@ -1,4 +1,4 @@
-(module (ideque)
+(module (srfi 134)
   (ideque ideque-tabulate ideque-unfold ideque-unfold-right
           ideque? ideque-empty? ideque= ideque-any ideque-every
 
