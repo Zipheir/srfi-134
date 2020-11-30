@@ -59,8 +59,7 @@
 
 ;; Common type checker
 (define (%check-ideque x)
-  (unless (ideque? x)
-    (error "ideque expected, but got:" x)))
+  (assume (ideque? x) "ideque expected" x))
 
 ;;;
 ;;; Constructors

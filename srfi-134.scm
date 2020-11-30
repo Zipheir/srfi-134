@@ -31,6 +31,7 @@
   (import (scheme)
           (chicken base)
           (srfi 1)
+          (srfi 145)
           (only (srfi 158) generator->list))
 
   (include "r7rs-shim.scm")
