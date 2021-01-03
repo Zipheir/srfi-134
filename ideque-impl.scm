@@ -223,7 +223,7 @@
         (lenr (dq-lenr dq))
         (r    (dq-r dq)))
     (if (<= n lenf)
-      (check n (drop f n) lenr r)
+      (check (- lenf n) (drop f n) lenr r)
       (let ((lenr. (- lenr (- n lenf))))
         (check 0 '() lenr. (take r lenr.))))))
 
