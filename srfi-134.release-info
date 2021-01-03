@@ -1,3 +1,4 @@
 (repo git "git://github.com/Zipheir/srfi-134.git")
 (uri targz "https://codeload.github.com/Zipheir/srfi-134/tar.gz/{egg-release}" whole-repo)
 (release "0.1" whole-repo)
+(release "0.2" whole-repo)
