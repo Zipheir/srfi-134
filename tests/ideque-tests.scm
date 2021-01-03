@@ -61,22 +61,10 @@
 )
 
 (test-group "ideque/other-accessors"
- (define (check name ideque-op list-op n)
-   (let* ((lis (iota n))
-          (dq (list->ideque lis)))
-     (for-each (lambda (i)
-                 (test (cons name i)
-                       (receive xs (list-op lis i) xs)
-                       (receive xs (ideque-op dq i)
-                         (map ideque->list xs))))
-               lis)))
- (check 'ideque-take ideque-take take 7)
  (test '(1 2 3 4) (ideque->list (ideque-take (ideque 1 2 3 4) 4)))
  (test '(1 2 3 4) (ideque->list (ideque-take-right (ideque 1 2 3 4) 4)))
- (check 'ideque-drop ideque-drop drop 6)
  (test '() (ideque->list (ideque-drop (ideque 1 2 3 4) 4)))
  (test '() (ideque->list (ideque-drop-right (ideque 1 2 3 4) 4)))
- (check 'ideque-split-at ideque-split-at split-at 8)
  ;; out-of-range conditions
  (test-error (ideque->list (ideque-take (ideque 1 2 3 4 5 6 7) 10)))
  (test-error (ideque->list (ideque-take-right (ideque 1 2 3 4 5 6 7) 10)))
