@@ -9,4 +9,5 @@
  (components
   (extension
    srfi-134
+   (csc-options "-O3" "-d2")
    (types-file))))
