@@ -30,9 +30,11 @@
 
   (import (scheme)
           (chicken base)
+          (except (chicken type) assume)
           (srfi 1)
           (srfi 145)
-          (only (srfi 158) generator->list))
+          (only (srfi 158) generator->list)
+          (typed-records))
 
   (include "r7rs-shim.scm")
   (include "ideque-impl.scm"))

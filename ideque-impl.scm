@@ -43,10 +43,12 @@
 ;;;
 
 (define-record-type <ideque> (%make-dq lenf f lenr r) ideque?
-  (lenf dq-lenf)  ; length of front chain
-  (f    dq-f)     ; front chain
-  (lenr dq-lenr)  ; length of rear chain
-  (r    dq-r))    ; rear chain
+  (lenf dq-lenf : integer)   ; length of front chain
+  (f    dq-f    : list)     ; front chain
+  (lenr dq-lenr : integer)   ; length of rear chain
+  (r    dq-r    : list))    ; rear chain
+
+(define-type ideque (struct <ideque>))
 
 ;; We use a singleton for empty deque
 (define *empty* (%make-dq 0 '() 0 '()))
@@ -60,9 +62,11 @@
 ;;;
 
 ;; API
+(: ideque (#!rest --> ideque))
 (define (ideque . args) (list->ideque args))
 
 ;; API
+(: ideque-tabulate (integer * --> ideque))
 (define (ideque-tabulate size init)
   (let ((lenf (quotient size 2))
         (lenr (quotient (+ size 1) 2)))
@@ -73,10 +77,12 @@
                            0))))
 
 ;; API
+(: ideque-unfold (procedure procedure procedure * --> ideque))
 (define (ideque-unfold p f g seed)
   (list->ideque (unfold p f g seed)))
 
 ;; API
+(: ideque-unfold-right (procedure procedure procedure * --> ideque))
 (define (ideque-unfold-right p f g seed)
   (list->ideque (unfold-right p f g seed)))
 ;; alternatively:
@@ -87,6 +93,7 @@
 
 (define C 3)
 
+(: check (integer list integer list --> ideque))
 (define (check lenf f lenr r)
   (cond ((> lenf (+ (* lenr C) 1))
          (let* ((i (quotient (+ lenf lenr) 2))
@@ -107,17 +114,20 @@
 ;;;
 
 ;; API
+(: ideque-empty? (ideque --> boolean))
 (define (ideque-empty? dq)
   (%check-ideque dq)
   (and (zero? (dq-lenf dq))
        (zero? (dq-lenr dq))))
 
 ;; API
+(: ideque-add-front (ideque * --> ideque))
 (define (ideque-add-front dq x)
   (%check-ideque dq)
   (check (+ (dq-lenf dq) 1) (cons x (dq-f dq)) (dq-lenr dq) (dq-r dq)))
 
 ;; API
+(: ideque-front (ideque --> *))
 (define (ideque-front dq)
   (%check-ideque dq)
   (if (zero? (dq-lenf dq))
@@ -127,6 +137,7 @@
     (car (dq-f dq))))
 
 ;; API
+(: ideque-remove-front (ideque --> ideque))
 (define (ideque-remove-front dq)
   (%check-ideque dq)
   (if (zero? (dq-lenf dq))
@@ -136,11 +147,13 @@
     (check (- (dq-lenf dq) 1) (cdr (dq-f dq)) (dq-lenr dq) (dq-r dq))))
 
 ;; API
+(: ideque-add-back (ideque * --> ideque))
 (define (ideque-add-back dq x)
   (%check-ideque dq)
   (check (dq-lenf dq) (dq-f dq) (+ (dq-lenr dq) 1) (cons x (dq-r dq))))
 
 ;; API
+(: ideque-back (ideque --> *))
 (define (ideque-back dq)
   (%check-ideque dq)
   (if (zero? (dq-lenr dq))
@@ -150,6 +163,7 @@
     (car (dq-r dq))))
 
 ;; API
+(: ideque-remove-back (ideque --> ideque))
 (define (ideque-remove-back dq)
   (%check-ideque dq)
   (if (zero? (dq-lenr dq))
@@ -159,6 +173,7 @@
     (check (dq-lenf dq) (dq-f dq) (- (dq-lenr dq) 1) (cdr (dq-r dq)))))
 
 ;; API
+(: ideque-reverse (ideque --> ideque))
 (define (ideque-reverse dq)
   (%check-ideque dq)
   (if (ideque-empty? dq)
@@ -170,6 +185,7 @@
 ;;
 
 ;; API
+(: ideque= (procedure #!rest ideque --> boolean))
 (define ideque=
   (case-lambda
     ((elt=) #t)
@@ -195,6 +211,7 @@
 
 ;; Compare two lists up to whichever shorter one.
 ;; Returns the compare result and the tails of uncompared lists.
+(: list-prefix= ((* * --> boolean) list list --> (boolean list list)))
 (define (list-prefix= elt= a b)
   (let loop ((a a) (b b))
     (cond ((or (null? a) (null? b)) (values #t a b))
@@ -202,6 +219,7 @@
           (else (values #f a b)))))
 
 ;; API
+(: ideque-ref (ideque integer --> *))
 (define (ideque-ref dq n)
   (%check-ideque dq)
   (let ((len (+ (dq-lenf dq) (dq-lenr dq))))
@@ -232,30 +250,35 @@
     (error "argument is out of range:" n)))
 
 ;; API
+(: ideque-take (ideque integer --> ideque))
 (define (ideque-take dq n)
   (%check-ideque dq)
   (%check-length dq n)
   (%ideque-take dq n))
 
 ;; API
+(: ideque-take-right (ideque integer --> ideque))
 (define (ideque-take-right dq n)
   (%check-ideque dq)
   (%check-length dq n)
   (%ideque-drop dq (- (ideque-length dq) n)))
 
 ;; API
+(: ideque-drop (ideque integer --> ideque))
 (define (ideque-drop dq n)
   (%check-ideque dq)
   (%check-length dq n)
   (%ideque-drop dq n))
 
 ;; API
+(: ideque-drop-right (ideque integer --> ideque))
 (define (ideque-drop-right dq n)
   (%check-ideque dq)
   (%check-length dq n)
   (%ideque-take dq (- (ideque-length dq) n)))
 
 ;; API
+(: ideque-split-at (ideque integer --> (ideque ideque)))
 (define (ideque-split-at dq n)
   (%check-ideque dq)
   (%check-length dq n)
@@ -263,34 +286,40 @@
           (%ideque-drop dq n)))
 
 ;; API
+(: ideque-length (ideque --> integer))
 (define (ideque-length dq)
   (%check-ideque dq)
   (+ (dq-lenf dq) (dq-lenr dq)))
 
 ;; API
+(: ideque-append (#!rest ideque --> ideque))
 (define (ideque-append . dqs)
   ;; We could save some list copying by carefully split dqs into front and
   ;; rear groups and append separately, but for now we don't bother...
   (list->ideque (concatenate (map ideque->list dqs))))
 
 ;; API
+(: ideque-count (procedure ideque --> integer))
 (define (ideque-count pred dq)
   (%check-ideque dq)
   (+ (count pred (dq-f dq)) (count pred (dq-r dq))))
 
 ;; API
+(: ideque-zip (ideque #!rest ideque --> ideque))
 (define (ideque-zip dq . dqs)
   ;; An easy way.
   (let ((elts (apply zip (ideque->list dq) (map ideque->list dqs))))
     (check (length elts) elts 0 '())))
 
 ;; API
+(: ideque-map (procedure ideque --> ideque))
 (define (ideque-map proc dq)
   (%check-ideque dq)
   (%make-dq (dq-lenf dq) (map proc (dq-f dq))
             (dq-lenr dq) (map proc (dq-r dq))))
 
 ;; API
+(: ideque-filter-map (procedure ideque --> ideque))
 (define (ideque-filter-map proc dq)
   (%check-ideque dq)
   (let ((f (filter-map proc (dq-f dq)))
@@ -298,28 +327,33 @@
     (check (length f) f (length r) r)))
 
 ;; API
+(: ideque-for-each (procedure ideque --> undefined))
 (define (ideque-for-each proc dq)
   (%check-ideque dq)
   (for-each proc (dq-f dq))
   (for-each proc (reverse (dq-r dq))))
 
 ;; API
+(: ideque-for-each-right (procedure ideque --> undefined))
 (define (ideque-for-each-right proc dq)
   (%check-ideque dq)
   (for-each proc (dq-r dq))
   (for-each proc (reverse (dq-f dq))))
 
 ;; API
+(: ideque-fold (procedure * ideque --> *))
 (define (ideque-fold proc knil dq)
   (%check-ideque dq)
   (fold proc (fold proc knil (dq-f dq)) (reverse (dq-r dq))))
 
 ;; API
+(: ideque-fold-right (procedure * ideque --> *))
 (define (ideque-fold-right proc knil dq)
   (%check-ideque dq)
   (fold-right proc (fold-right proc knil (reverse (dq-r dq))) (dq-f dq)))
 
 ;; API
+(: ideque-append-map (procedure ideque --> ideque))
 (define (ideque-append-map proc dq)
   ;; can be cleverer, but for now...
   (list->ideque (append-map proc (ideque->list dq))))
@@ -331,10 +365,13 @@
     (check (length f) f (length r) r)))
 
 ;; API
+(: ideque-filter (procedure ideque --> ideque))
 (define (ideque-filter pred dq) (%ideque-filter-remove filter pred dq))
+(: ideque-remove (procedure ideque --> ideque))
 (define (ideque-remove pred dq) (%ideque-filter-remove remove pred dq))
 
 ;; API
+(: ideque-partition (procedure ideque --> (ideque ideque)))
 (define (ideque-partition pred dq)
   (%check-ideque dq)
   (receive (f1 f2) (partition pred (dq-f dq))
@@ -360,18 +397,21 @@
           (failure))))))
 
 ;; API
+(: ideque-find (procedure ideque #!optional procedure --> *))
 (define (ideque-find pred dq . opts)
   (%check-ideque dq)
   (let ((failure (if (pair? opts) (car opts) (lambda () #f))))
     (%search pred (dq-f dq) (dq-r dq) failure)))
 
 ;; API
+(: ideque-find-right (procedure ideque #!optional procedure --> *))
 (define (ideque-find-right pred dq . opts)
   (%check-ideque dq)
   (let ((failure (if (pair? opts) (car opts) (lambda () #f))))
     (%search pred (dq-r dq) (dq-f dq) failure)))
 
 ;; API
+(: ideque-take-while (procedure ideque --> ideque))
 (define (ideque-take-while pred dq)
   (%check-ideque dq)
   (receive (hd tl) (span pred (dq-f dq))
@@ -381,11 +421,13 @@
       (check (length hd) hd 0 '()))))
 
 ;; API
+(: ideque-take-while-right (procedure ideque --> ideque))
 (define (ideque-take-while-right pred dq)
   (%check-ideque dq)
   (ideque-reverse (ideque-take-while pred (ideque-reverse dq))))
 
 ;; API
+(: ideque-drop-while (procedure ideque --> ideque))
 (define (ideque-drop-while pred dq)
   (%check-ideque dq)
   (receive (hd tl) (span pred (dq-f dq))
@@ -395,6 +437,7 @@
       (check (length tl) tl (dq-lenr dq) (dq-r dq)))))
 
 ;; API
+(: ideque-drop-while-right (procedure ideque --> ideque))
 (define (ideque-drop-while-right pred dq)
   (%check-ideque dq)
   (ideque-reverse (ideque-drop-while pred (ideque-reverse dq))))
@@ -410,10 +453,13 @@
               (check (length tail) tail (dq-lenr dq) (dq-r dq))))))
 
 ;; API
+(: ideque-span (procedure ideque --> (ideque ideque)))
 (define (ideque-span pred dq) (%idq-span-break span pred dq))
+(: ideque-break (procedure ideque --> (ideque ideque)))
 (define (ideque-break pred dq) (%idq-span-break break pred dq))
 
 ;; API
+(: ideque-any (procedure ideque --> *))
 (define (ideque-any pred dq)
   (%check-ideque dq)
   (if (null? (dq-r dq))
@@ -421,6 +467,7 @@
     (or (any pred (dq-f dq)) (any pred (reverse (dq-r dq))))))
 
 ;; API
+(: ideque-every (procedure ideque --> *))
 (define (ideque-every pred dq)
   (%check-ideque dq)
   (if (null? (dq-r dq))
@@ -428,14 +475,17 @@
     (and (every pred (dq-f dq)) (every pred (reverse (dq-r dq))))))
 
 ;; API
+(: ideque->list (ideque --> list))
 (define (ideque->list dq)
   (%check-ideque dq)
   (append (dq-f dq) (reverse (dq-r dq))))
 
 ;; API
+(: list->ideque (list --> ideque))
 (define (list->ideque lis) (check (length lis) lis 0 '()))
 
 ;; API
+(: ideque->generator (ideque -> procedure))
 (define (ideque->generator dq)
   (%check-ideque dq)
   (lambda ()
@@ -446,5 +496,6 @@
         v))))
 
 ;; API
+(: generator->ideque (procedure -> ideque))
 (define (generator->ideque gen)
   (list->ideque (generator->list gen)))
