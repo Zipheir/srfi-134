@@ -36,5 +36,4 @@
           (only (srfi 158) generator->list)
           (typed-records))
 
-  (include "r7rs-shim.scm")
   (include "ideque-impl.scm"))

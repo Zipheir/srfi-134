@@ -1,1 +1,0 @@
-(define (eof-object) #!eof)

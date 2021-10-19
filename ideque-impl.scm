@@ -490,7 +490,7 @@
   (%check-ideque dq)
   (lambda ()
     (if (ideque-empty? dq)
-      (eof-object)
+      #!eof
       (let ((v (ideque-front dq)))
         (set! dq (ideque-remove-front dq))
         v))))
