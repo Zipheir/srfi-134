@@ -211,7 +211,7 @@
 
 ;; Compare two lists up to whichever shorter one.
 ;; Returns the compare result and the tails of uncompared lists.
-(: list-prefix= ((* * --> boolean) list list --> (boolean list list)))
+(: list-prefix= ((* * -> boolean) list list --> boolean list list))
 (define (list-prefix= elt= a b)
   (let loop ((a a) (b b))
     (cond ((or (null? a) (null? b)) (values #t a b))
@@ -278,7 +278,7 @@
   (%ideque-take dq (- (ideque-length dq) n)))
 
 ;; API
-(: ideque-split-at (ideque integer --> (ideque ideque)))
+(: ideque-split-at (ideque integer --> ideque ideque))
 (define (ideque-split-at dq n)
   (%check-ideque dq)
   (%check-length dq n)
@@ -371,7 +371,7 @@
 (define (ideque-remove pred dq) (%ideque-filter-remove remove pred dq))
 
 ;; API
-(: ideque-partition (procedure ideque --> (ideque ideque)))
+(: ideque-partition (procedure ideque --> ideque ideque))
 (define (ideque-partition pred dq)
   (%check-ideque dq)
   (receive (f1 f2) (partition pred (dq-f dq))
@@ -453,9 +453,9 @@
               (check (length tail) tail (dq-lenr dq) (dq-r dq))))))
 
 ;; API
-(: ideque-span (procedure ideque --> (ideque ideque)))
+(: ideque-span (procedure ideque --> ideque ideque))
 (define (ideque-span pred dq) (%idq-span-break span pred dq))
-(: ideque-break (procedure ideque --> (ideque ideque)))
+(: ideque-break (procedure ideque --> ideque ideque))
 (define (ideque-break pred dq) (%idq-span-break break pred dq))
 
 ;; API
