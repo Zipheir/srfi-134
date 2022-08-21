@@ -30,10 +30,43 @@
 
   (import (scheme)
           (chicken base)
+          (chicken condition)
           (except (chicken type) assume)
           (srfi 1)
-          (srfi 145)
           (only (srfi 158) generator->list)
           (typed-records))
+
+  (define-syntax assert-type
+    (syntax-rules ()
+      ((assert-type loc expr)
+       (unless expr
+         (abort
+          (make-composite-condition
+           (make-property-condition 'exn
+            'location loc
+            'message "type check failed"
+            'arguments (list 'expr))
+           (make-property-condition 'type)
+           (make-property-condition 'assertion)))))))
+
+  (define (arity-exception loc argl)
+    (abort
+     (make-composite-condition
+      (make-property-condition 'exn
+       'location loc
+       'message "invalid number of arguments"
+       'arguments argl)
+      (make-property-condition 'arity)
+      (make-property-condition 'assertion))))
+
+  (define (bounds-exception loc msg . args)
+    (abort
+     (make-composite-condition
+      (make-property-condition 'exn
+       'location loc
+       'message msg
+       'arguments args)
+      (make-property-condition 'bounds)
+      (make-property-condition 'assertion))))
 
   (include "ideque-impl.scm"))
