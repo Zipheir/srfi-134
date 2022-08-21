@@ -246,7 +246,7 @@
           ((< n (dq-lenf dq)) (list-ref (dq-f dq) n))
           (else (list-ref (dq-r dq) (- len n 1))))))
 
-;; FIXME: types
+(: %ideque-take (ideque integer --> ideque))
 (define (%ideque-take dq n)             ; n is within the range
   (let ((lenf (dq-lenf dq))
         (f    (dq-f dq)))
@@ -255,6 +255,7 @@
       (let ((lenr. (- n lenf)))
         (check lenf f lenr. (take-right (dq-r dq) lenr.))))))
 
+(: %ideque-drop (ideque integer --> ideque))
 (define (%ideque-drop dq n)             ; n is within the range
   (let ((lenf (dq-lenf dq))
         (f    (dq-f dq))
@@ -422,6 +423,7 @@
 ;; FIXME: Not unique.
 (define *not-found* (cons #f #f)) ; unique value
 
+(: %search (procedure list list procedure --> *))
 (define (%search pred seq1 seq2 failure)
   ;; We could write seek as CPS, but we employ *not-found* instead to avoid
   ;; closure allocation.
@@ -497,6 +499,7 @@
   (assert-type 'ideque-drop-while-right (ideque? dq))
   (ideque-reverse (ideque-drop-while pred (ideque-reverse dq))))
 
+(: %idq-span-break (procedure procedure ideque --> ideque ideque))
 (define (%idq-span-break op pred dq)
   (receive (head tail) (op pred (dq-f dq))
     (if (null? tail)
