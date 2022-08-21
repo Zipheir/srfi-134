@@ -33,7 +33,6 @@
           (chicken condition)
           (except (chicken type) assume)
           (srfi 1)
-          (only (srfi 158) generator->list)
           (typed-records))
 
   (define-syntax assert-type
@@ -58,5 +57,12 @@
        'arguments args)
       (make-property-condition 'bounds)
       (make-property-condition 'assertion))))
+
+  ;; SRFI 158 shim
+  (define (generator->list gen)
+    (let lp ((xs '()) (x (gen)))
+      (if (eof-object? x)
+          (reverse xs)
+          (lp (cons x xs) (gen)))))
 
   (include "ideque-impl.scm"))
