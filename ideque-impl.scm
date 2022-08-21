@@ -420,7 +420,6 @@
       (values (check (length f1) f1 (length r1) r1)
               (check (length f2) f2 (length r2) r2)))))
 
-;; FIXME: Not unique.
 (define *not-found* (cons #f #f)) ; unique value
 
 (: %search (procedure list list procedure --> *))
