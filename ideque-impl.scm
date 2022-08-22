@@ -31,9 +31,13 @@
 ;;;   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-;; This implements banker's deque as described in
-;; Chris Okasaki's Purely Functional Data Structures.
-;; It provides amortized O(1) basic operations.
+;; This is similar to the banker's deque as described in
+;; Chris Okasaki's Purely Functional Data Structures, but
+;; does not use lazy evaluation.  Thus, it probably does *not*
+;; provide amortized O(1) running time in all of the
+;; situations in which the SRFI requires it.  Still, it's
+;; fast enough for most purposes. --Zipheir
+
 ;; Originally written for Gauche, and ported to R7RS.
 
 ;; Requires srfi-1, srfi-9, srfi-121.
