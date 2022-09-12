@@ -483,6 +483,7 @@
 
 (: ideque-filter (procedure ideque -> ideque))
 (define (ideque-filter pred dq) (%ideque-filter 'ideque-filter pred dq))
+
 (: ideque-remove (procedure ideque -> ideque))
 (define (ideque-remove pred dq)
   (%ideque-filter 'ideque-remove (lambda (x) (not (pred x))) dq))
@@ -587,6 +588,7 @@
 (: ideque-span (procedure ideque -> ideque ideque))
 (define (ideque-span pred dq)
   (%idq-span-break 'ideque-span stream-span pred dq))
+
 (: ideque-break (procedure ideque -> ideque ideque))
 (define (ideque-break pred dq)
   (%idq-span-break 'ideque-break stream-break pred dq))
