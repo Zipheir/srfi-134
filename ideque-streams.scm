@@ -453,7 +453,7 @@
               (make-deque (stream-length f2) f2 (stream-length r2) r2)))))
 
 (: *not-found* (pair boolean boolean))
-(define *not-found* (cons #f #f)) ; unique value
+(define-constant *not-found* (cons #f #f)) ; unique value
 
 (: %search (procedure * * procedure -> *))
 (define (%search pred seq1 seq2 failure)
