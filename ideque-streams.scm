@@ -35,6 +35,12 @@
 (cond-expand
   (chicken (begin (define (eof-object) #!eof))))
 
+;;;; Utility
+
+(: natural-fixnum? (* --> boolean))
+(define (natural-fixnum? x)
+  (and (fixnum? x) (not (negative? x))))
+
 ;;;; Stream utility
 
 (define (stream=? elt= s1 s2)
@@ -238,6 +244,8 @@
 
 (: ideque-tabulate (fixnum procedure -> ideque))
 (define (ideque-tabulate size init)
+  (assert-type 'ideque-tabulate (natural-fixnum? size))
+  (assert-type 'ideque-tabulate (procedure? init))
   (let ((lenf (quotient size 2))
         (lenr (quotient (+ size 1) 2)))
     (%make-dq lenf
@@ -253,10 +261,16 @@
 
 (: ideque-unfold (procedure procedure procedure * -> ideque))
 (define (ideque-unfold p f g seed)
+  (assert-type 'ideque-unfold (procedure? p))
+  (assert-type 'ideque-unfold (procedure? f))
+  (assert-type 'ideque-unfold (procedure? g))
   (list->ideque (unfold p f g seed)))
 
 (: ideque-unfold-right (procedure procedure procedure * -> ideque))
 (define (ideque-unfold-right p f g seed)
+  (assert-type 'ideque-unfold-right (procedure? p))
+  (assert-type 'ideque-unfold-right (procedure? f))
+  (assert-type 'ideque-unfold-right (procedure? g))
   (ideque-reverse (list->ideque (unfold p f g seed))))
 
 ;;;; Other operations
@@ -264,12 +278,17 @@
 (: ideque= (procedure #!rest ideque -> boolean))
 (define ideque=
   (case-lambda
-    ((elt=) #t)
+    ((elt=)
+     (assert-type 'ideque= (procedure? elt=))
+     #t)
     ((elt= dq)
+     (assert-type 'ideque= (procedure? elt=))
      (assert-type 'ideque= (ideque? dq))
      #t)
     ((elt= dq1 dq2) (%ideque=-binary elt= dq1 dq2))
     ((elt= . dqs)
+     (assert-type 'ideque= (procedure? elt=))
+     (assert-type 'ideque= (every ideque? dqs))
      ;; The comparison scheme is the same as srfi-1's list=.
      (apply list= elt= (map ideque->list dqs)))))
 
@@ -280,6 +299,7 @@
 ;; we optimize two-arg case
 (: %ideque=-binary (procedure ideque ideque -> boolean))
 (define (%ideque=-binary elt= dq1 dq2)
+  (assert-type 'ideque= (procedure? elt=))
   (assert-type 'ideque= (ideque? dq1))
   (assert-type 'ideque= (ideque? dq2))
   (or (eq? dq1 dq2)
@@ -298,6 +318,7 @@
 (: ideque-ref (ideque fixnum -> *))
 (define (ideque-ref dq n)
   (assert-type 'ideque-ref (ideque? dq))
+  (assert-type 'ideque-ref (natural-fixnum? n))
   (let ((len (+ (dq-lenf dq) (dq-lenr dq))))
     (cond ((or (< n 0) (>= n len))
            (bounds-exception 'ideque-ref
@@ -336,30 +357,35 @@
 (: ideque-take (ideque fixnum -> ideque))
 (define (ideque-take dq n)
   (assert-type 'ideque-take (ideque? dq))
+  (assert-type 'ideque-take (natural-fixnum? n))
   (%check-length 'ideque-take dq n)
   (%ideque-take dq n))
 
 (: ideque-take-right (ideque fixnum -> ideque))
 (define (ideque-take-right dq n)
   (assert-type 'ideque-take-right (ideque? dq))
+  (assert-type 'ideque-take-right (natural-fixnum? n))
   (%check-length 'ideque-take-right dq n)
   (%ideque-drop dq (- (%ideque-length dq) n)))
 
 (: ideque-drop (ideque fixnum -> ideque))
 (define (ideque-drop dq n)
   (assert-type 'ideque-drop (ideque? dq))
+  (assert-type 'ideque-drop (natural-fixnum? n))
   (%check-length 'ideque-drop dq n)
   (%ideque-drop dq n))
 
 (: ideque-drop-right (ideque fixnum -> ideque))
 (define (ideque-drop-right dq n)
   (assert-type 'ideque-drop-right (ideque? dq))
+  (assert-type 'ideque-drop-right (natural-fixnum? n))
   (%check-length 'ideque-drop-right dq n)
   (%ideque-take dq (- (%ideque-length dq) n)))
 
 (: ideque-split-at (ideque fixnum -> ideque ideque))
 (define (ideque-split-at dq n)
   (assert-type 'ideque-split-at (ideque? dq))
+  (assert-type 'ideque-split-at (natural-fixnum? n))
   (%check-length 'ideque-split-at dq n)
   (values (%ideque-take dq n)
           (%ideque-drop dq n)))
@@ -378,6 +404,7 @@
 (define (ideque-append . dqs)
   ;; We could save some list copying by carefully split dqs into front and
   ;; rear groups and append separately, but for now we don't bother...
+  (assert-type 'ideque-append (every ideque? dqs))
   (list->ideque (concatenate (map ideque->list dqs))))
 
 (: ideque-count (procedure ideque -> fixnum))
