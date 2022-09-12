@@ -1,5 +1,14 @@
 ;; Requires srfi-1 and srfi-121 (generators)
 
+;; SRFI 158 shim
+(define (generator . args)
+  (lambda ()
+    (if (null? args)
+        #!eof
+        (let ((x (car args)))
+          (set! args (cdr args))
+          x))))
+
 (test-group "ideque"
 
 (test-group "ideque/constructors"

@@ -33,7 +33,17 @@
           (chicken type)
           (srfi 1)
           (srfi 41)
-          (only (srfi 158) generator->list)
           (typed-records))
+
+  ;; SRFI 158 shim
+  (define (generator->list gen)
+    (letrec
+     ((build
+       (lambda (xs)
+         (let ((x (gen)))
+           (if (eof-object? x)
+               (reverse xs)
+               (build (cons x xs)))))))
+      (build '())))
 
   (include "ideque-streams.scm"))
