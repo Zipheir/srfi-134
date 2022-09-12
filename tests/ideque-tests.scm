@@ -197,7 +197,9 @@
                      (ideque 2 1 'a 'b 'c 'd)))
  (test #f (ideque-every (lambda (x) (and (odd? x) x))
                         (ideque 1 2 'a 'b 'c 'd)))
+ )
 
+(test-group "ideque/conversions"
  (test '(1 2 3) (generator->list (ideque->generator (ideque 1 2 3))))
  (test '() (generator->list (ideque->generator (ideque))))
  (test '(1 2 3) (ideque->list (generator->ideque (generator 1 2 3))))
