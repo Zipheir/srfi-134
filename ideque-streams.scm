@@ -275,7 +275,7 @@
 
 (: %ideque-same-length (ideque ideque -> boolean))
 (define (%ideque-same-length dq1 dq2)
-  (= (ideque-length dq1) (ideque-length dq2)))
+  (= (%ideque-length dq1) (%ideque-length dq2)))
 
 ;; we optimize two-arg case
 (: %ideque=-binary (procedure ideque ideque -> boolean))
@@ -330,7 +330,7 @@
 
 (: %check-length (symbol ideque fixnum -> undefined))
 (define (%check-length loc dq n)
-  (unless (<= 0 n (ideque-length dq))
+  (unless (<= 0 n (%ideque-length dq))
     (bounds-exception loc "argument is out of range" n dq)))
 
 (: ideque-take (ideque fixnum -> ideque))
@@ -343,7 +343,7 @@
 (define (ideque-take-right dq n)
   (assert-type 'ideque-take-right (ideque? dq))
   (%check-length 'ideque-take-right dq n)
-  (%ideque-drop dq (- (ideque-length dq) n)))
+  (%ideque-drop dq (- (%ideque-length dq) n)))
 
 (: ideque-drop (ideque fixnum -> ideque))
 (define (ideque-drop dq n)
@@ -355,7 +355,7 @@
 (define (ideque-drop-right dq n)
   (assert-type 'ideque-drop-right (ideque? dq))
   (%check-length 'ideque-drop-right dq n)
-  (%ideque-take dq (- (ideque-length dq) n)))
+  (%ideque-take dq (- (%ideque-length dq) n)))
 
 (: ideque-split-at (ideque fixnum -> ideque ideque))
 (define (ideque-split-at dq n)
@@ -367,6 +367,11 @@
 (: ideque-length (ideque -> fixnum))
 (define (ideque-length dq)
   (assert-type 'ideque-length (ideque? dq))
+  (%ideque-length dq))
+
+;; Version with no type-check for internal use.
+(: %ideque-length (ideque -> fixnum))
+(define (%ideque-length dq)
   (+ (dq-lenf dq) (dq-lenr dq)))
 
 (: ideque-append (#!rest ideque -> ideque))
