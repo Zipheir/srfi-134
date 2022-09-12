@@ -177,7 +177,7 @@
   (assert-type 'ideque-front (ideque? dq))
   (if (zero? (dq-lenf dq))
       (if (zero? (dq-lenr dq))
-          (error "Empty deque:" dq)
+          (bounds-exception 'ideque-front "empty deque" dq)
           (stream-car (dq-r dq)))
       (stream-car (dq-f dq))))
 
@@ -186,7 +186,7 @@
   (assert-type 'ideque-remove-front (ideque? dq))
   (if (zero? (dq-lenf dq))
       (if (zero? (dq-lenr dq))
-          (error "Empty deque:" dq)
+          (bounds-exception 'ideque-front "empty deque" dq)
           *empty*)
       (make-deque (- (dq-lenf dq) 1)
                   (stream-cdr (dq-f dq))
@@ -206,7 +206,6 @@
   (assert-type 'ideque-back (ideque? dq))
   (if (zero? (dq-lenr dq))
       (if (zero? (dq-lenf dq))
-          (error "Empty deque:" dq)
           (stream-car (dq-f dq)))
       (stream-car (dq-r dq))))
 
@@ -215,7 +214,7 @@
   (assert-type 'ideque-remove-back (ideque? dq))
   (if (zero? (dq-lenr dq))
       (if (zero? (dq-lenf dq))
-          (error "Empty deque:" dq)
+          (bounds-exception 'ideque-front "empty deque" dq)
           *empty*)
       (make-deque (dq-lenf dq)
                   (dq-f dq)
@@ -300,7 +299,11 @@
 (define (ideque-ref dq n)
   (assert-type 'ideque-ref (ideque? dq))
   (let ((len (+ (dq-lenf dq) (dq-lenr dq))))
-    (cond ((or (< n 0) (>= n len)) (error "Index out of range:" n))
+    (cond ((or (< n 0) (>= n len))
+           (bounds-exception 'ideque-ref
+                             "argument is out of range"
+                             n
+                             dq))
           ((< n (dq-lenf dq)) (stream-ref (dq-f dq) n))
           (else (stream-ref (dq-r dq) (- len n 1))))))
 
