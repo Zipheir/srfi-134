@@ -30,6 +30,7 @@
 
   (import (scheme)
           (chicken base)
+          (chicken condition)
           (chicken type)
           (srfi 1)
           (srfi 41)
@@ -46,4 +47,5 @@
                (build (cons x xs)))))))
       (build '())))
 
+  (include "exceptions.scm")
   (include "ideque-streams.scm"))
