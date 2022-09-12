@@ -30,10 +30,9 @@
 
   (import (scheme)
           (chicken base)
-          (except (chicken type) assume)
+          (chicken type)
           (srfi 1)
           (srfi 41)
-          (srfi 145)
           (only (srfi 158) generator->list)
           (typed-records))
 
