@@ -591,7 +591,7 @@
 (: %idq-span-break (symbol procedure procedure ideque -> ideque ideque))
 (define (%idq-span-break loc op pred dq)
   (assert-type loc (ideque? dq))
-  (assert-type loc (procedure? dq))
+  (assert-type loc (procedure? pred))
   (receive (head tail) (op pred (dq-f dq))
     (if (null? tail)
         (receive (head. tail.) (op pred (stream-reverse (dq-r dq)))
