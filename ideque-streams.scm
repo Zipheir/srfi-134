@@ -655,3 +655,15 @@
 (define (generator->ideque gen)
   (assert-type 'generator->ideque (procedure? gen))
   (list->ideque (generator->list gen)))
+
+(: ideque->stream (ideque -> *))
+(define (ideque->stream dq)
+  (assert-type 'ideque->stream (ideque? dq))
+  (stream-append (dq-f dq) (stream-reverse (dq-r dq))))
+
+(: stream->ideque (* -> ideque))
+(define (stream->ideque stream)
+  (make-deque (stream-length stream)
+              stream
+              0
+              stream-null))

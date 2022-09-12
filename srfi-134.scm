@@ -26,6 +26,7 @@
 
    list->ideque ideque->list
    generator->ideque ideque->generator
+   ideque->stream stream->ideque
    )
 
   (import (scheme)
