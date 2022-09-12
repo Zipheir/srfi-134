@@ -409,23 +409,28 @@
 
 (: ideque-count (procedure ideque -> fixnum))
 (define (ideque-count pred dq)
+  (assert-type 'ideque-count (procedure? pred))
   (assert-type 'ideque-count (ideque? dq))
   (+ (stream-count pred (dq-f dq)) (stream-count pred (dq-r dq))))
 
 (: ideque-zip (ideque #!rest ideque -> ideque))
 (define (ideque-zip dq . dqs)
+  (assert-type 'ideque-zip (ideque? dq))
+  (assert-type 'ideque-zip (every ideque? dqs))
   ;; An easy way.
   (let ((elts (apply zip (ideque->list dq) (map ideque->list dqs))))
     (make-deque (length elts) (list->stream elts) 0 stream-null)))
 
 (: ideque-map (procedure ideque -> ideque))
 (define (ideque-map proc dq)
+  (assert-type 'ideque-map (procedure? proc))
   (assert-type 'ideque-map (ideque? dq))
   (%make-dq (dq-lenf dq) (stream-map proc (dq-f dq))
             (dq-lenr dq) (stream-map proc (dq-r dq))))
 
 (: ideque-filter-map (procedure ideque -> ideque))
 (define (ideque-filter-map proc dq)
+  (assert-type 'ideque-filter-map (procedure? proc))
   (assert-type 'ideque-filter-map (ideque? dq))
   (let ((f (stream-filter-map proc (dq-f dq)))
         (r (stream-filter-map proc (dq-r dq))))
@@ -433,18 +438,21 @@
 
 (: ideque-for-each (procedure ideque -> undefined))
 (define (ideque-for-each proc dq)
+  (assert-type 'ideque-for-each (procedure? proc))
   (assert-type 'ideque-for-each (ideque? dq))
   (stream-for-each proc (dq-f dq))
   (stream-for-each proc (stream-reverse (dq-r dq))))
 
 (: ideque-for-each-right (procedure ideque -> undefined))
 (define (ideque-for-each-right proc dq)
+  (assert-type 'ideque-for-each-right (procedure? proc))
   (assert-type 'ideque-for-each-right (ideque? dq))
   (stream-for-each proc (dq-r dq))
   (stream-for-each proc (stream-reverse (dq-f dq))))
 
 (: ideque-fold (procedure * ideque -> *))
 (define (ideque-fold proc knil dq)
+  (assert-type 'ideque-fold (procedure? proc))
   (let ((proc* (lambda (acc x) (proc x acc))))  ; stream-fold compat
     (assert-type 'ideque-fold (ideque? dq))
     (stream-fold proc*
@@ -454,29 +462,34 @@
 ;; There's no stream-fold-right, so just convert dq.
 (: ideque-fold-right (procedure * ideque -> *))
 (define (ideque-fold-right proc knil dq)
+  (assert-type 'ideque-fold-right (procedure? proc))
   (assert-type 'ideque-fold-right (ideque? dq))
   (fold-right proc knil (ideque->list dq)))
 
 (: ideque-append-map (procedure ideque -> ideque))
 (define (ideque-append-map proc dq)
+  (assert-type 'ideque-append-map (procedure? proc))
+  (assert-type 'ideque-append-map (ideque? dq))
   ;; can be cleverer, but for now...
   (list->ideque (append-map proc (ideque->list dq))))
 
-(: %ideque-filter (procedure ideque -> ideque))
-(define (%ideque-filter pred dq)
-  (assert-type '%ideque-filter (ideque? dq))
+(: %ideque-filter (symbol procedure ideque -> ideque))
+(define (%ideque-filter loc pred dq)
+  (assert-type loc (procedure? pred))
+  (assert-type loc (ideque? dq))
   (let ((f (stream-filter pred (dq-f dq)))
         (r (stream-filter pred (dq-r dq))))
     (make-deque (stream-length f) f (stream-length r) r)))
 
 (: ideque-filter (procedure ideque -> ideque))
-(define (ideque-filter pred dq) (%ideque-filter pred dq))
+(define (ideque-filter pred dq) (%ideque-filter 'ideque-filter pred dq))
 (: ideque-remove (procedure ideque -> ideque))
 (define (ideque-remove pred dq)
-  (%ideque-filter (lambda (x) (not (pred x))) dq))
+  (%ideque-filter 'ideque-remove (lambda (x) (not (pred x))) dq))
 
 (: ideque-partition (procedure ideque -> ideque ideque))
 (define (ideque-partition pred dq)
+  (assert-type 'ideque-partition (procedure? pred))
   (assert-type 'ideque-partition (ideque? dq))
   (receive (f1 f2) (stream-partition pred (dq-f dq))
     (receive (r1 r2) (stream-partition pred (dq-r dq))
@@ -504,18 +517,25 @@
 
 (: ideque-find (procedure ideque #!optional procedure -> *))
 (define (ideque-find pred dq . opts)
+  (assert-type 'ideque-find (procedure? pred))
   (assert-type 'ideque-find (ideque? dq))
+  (unless (<= (length opts) 1)
+    (arity-exception 'ideque-find opts))
   (let ((failure (if (pair? opts) (car opts) (lambda () #f))))
+    (assert-type 'ideque-find (procedure? failure))
     (%search pred (dq-f dq) (dq-r dq) failure)))
 
 (: ideque-find-right (procedure ideque #!optional procedure -> *))
 (define (ideque-find-right pred dq . opts)
+  (assert-type 'ideque-find-right (procedure? pred))
   (assert-type 'ideque-find-right (ideque? dq))
   (let ((failure (if (pair? opts) (car opts) (lambda () #f))))
+    (assert-type 'ideque-find (procedure? failure))
     (%search pred (dq-r dq) (dq-f dq) failure)))
 
 (: ideque-take-while (procedure ideque -> ideque))
 (define (ideque-take-while pred dq)
+  (assert-type 'ideque-take-while (procedure? pred))
   (assert-type 'ideque-take-while (ideque? dq))
   (receive (hd tl) (stream-span pred (dq-f dq))
     (if (stream-null? tl)
@@ -528,11 +548,13 @@
 
 (: ideque-take-while-right (procedure ideque -> ideque))
 (define (ideque-take-while-right pred dq)
+  (assert-type 'ideque-take-while-right (procedure? pred))
   (assert-type 'ideque-take-while-right (ideque? dq))
   (ideque-reverse (ideque-take-while pred (ideque-reverse dq))))
 
 (: ideque-drop-while (procedure ideque -> ideque))
 (define (ideque-drop-while pred dq)
+  (assert-type 'ideque-drop-while (procedure? pred))
   (assert-type 'ideque-drop-while (ideque? dq))
   (receive (hd tl) (stream-span pred (dq-f dq))
     (if (stream-null? tl)
@@ -542,12 +564,14 @@
 
 (: ideque-drop-while-right (procedure ideque -> ideque))
 (define (ideque-drop-while-right pred dq)
+  (assert-type 'ideque-drop-while-right (procedure? pred))
   (assert-type 'ideque-drop-while-right (ideque? dq))
   (ideque-reverse (ideque-drop-while pred (ideque-reverse dq))))
 
-(: %idq-span-break (procedure procedure ideque -> ideque ideque))
-(define (%idq-span-break op pred dq)
-  (assert-type '%idq-span-break (ideque? dq))
+(: %idq-span-break (symbol procedure procedure ideque -> ideque ideque))
+(define (%idq-span-break loc op pred dq)
+  (assert-type loc (ideque? dq))
+  (assert-type loc (procedure? dq))
   (receive (head tail) (op pred (dq-f dq))
     (if (null? tail)
         (receive (head. tail.) (op pred (stream-reverse (dq-r dq)))
@@ -561,12 +585,15 @@
          (make-deque (stream-length tail) tail (dq-lenr dq) (dq-r dq))))))
 
 (: ideque-span (procedure ideque -> ideque ideque))
-(define (ideque-span pred dq) (%idq-span-break stream-span pred dq))
+(define (ideque-span pred dq)
+  (%idq-span-break 'ideque-span stream-span pred dq))
 (: ideque-break (procedure ideque -> ideque ideque))
-(define (ideque-break pred dq) (%idq-span-break stream-break pred dq))
+(define (ideque-break pred dq)
+  (%idq-span-break 'ideque-break stream-break pred dq))
 
 (: ideque-any (procedure ideque -> *))
 (define (ideque-any pred dq)
+  (assert-type 'ideque-any (procedure? pred))
   (assert-type 'ideque-any (ideque? dq))
   (if (stream-null? (dq-r dq))
       (stream-any pred (dq-f dq))
@@ -575,6 +602,7 @@
 
 (: ideque-every (procedure ideque -> *))
 (define (ideque-every pred dq)
+  (assert-type 'ideque-every (procedure? pred))
   (assert-type 'ideque-every (ideque? dq))
   (if (stream-null? (dq-r dq))
       (stream-every pred (dq-f dq))
@@ -589,6 +617,7 @@
 
 (: list->ideque (list -> ideque))
 (define (list->ideque lis)
+  (assert-type 'list->ideque (or (pair? lis) (null? lis)))
   (make-deque (length lis) (list->stream lis) 0 stream-null))
 
 (: ideque->generator (ideque -> procedure))
@@ -603,4 +632,5 @@
 
 (: generator->ideque (procedure -> ideque))
 (define (generator->ideque gen)
+  (assert-type 'generator->ideque (procedure? gen))
   (list->ideque (generator->list gen)))
