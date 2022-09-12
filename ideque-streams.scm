@@ -103,12 +103,6 @@
            (elt= (stream-car s1) (stream-car s2))
            (stream=? elt= (stream-cdr s1) (stream-cdr s2)))))
 
-;; some compatibility stuff
-(define-syntax receive
-  (syntax-rules ()
-    ((_ binds mv-expr body ...)
-     (let-values ((binds mv-expr)) body ...))))
-
 ;;;; ideque type
 
 (define-record-type <ideque> (%make-dq lenf f lenr r) ideque?
