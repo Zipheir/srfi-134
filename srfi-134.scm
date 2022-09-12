@@ -32,8 +32,9 @@
           (chicken base)
           (except (chicken type) assume)
           (srfi 1)
+          (srfi 41)
           (srfi 145)
           (only (srfi 158) generator->list)
           (typed-records))
 
-  (include "ideque-impl.scm"))
+  (include "ideque-streams.scm"))
