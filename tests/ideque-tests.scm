@@ -9,6 +9,16 @@
           (set! args (cdr args))
           x))))
 
+(define (generator->list gen)
+  (letrec
+   ((build
+     (lambda (xs)
+       (let ((x (gen)))
+         (if (eof-object? x)
+             (reverse xs)
+             (build (cons x xs)))))))
+    (build '())))
+
 (test-group "ideque/constructors"
  (test '() (ideque->list (ideque)))
  (test '() (ideque->list (list->ideque '())))
