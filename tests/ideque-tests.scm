@@ -204,4 +204,8 @@
  (test '() (generator->list (ideque->generator (ideque))))
  (test '(1 2 3) (ideque->list (generator->ideque (generator 1 2 3))))
  (test '() (ideque->list (generator->ideque (generator))))
+ (test #t (stream-null? (ideque->stream (ideque))))
+ (test '(1 2 3) (stream->list (ideque->stream (ideque 1 2 3))))
+ (test #t (ideque-empty? (stream->ideque stream-null)))
+ (test '(1 2 3) (ideque->list (stream->ideque (list->stream '(1 2 3)))))
  )
