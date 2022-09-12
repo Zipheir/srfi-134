@@ -414,6 +414,7 @@
      (assert-type 'ideque-append (every ideque? dqs))
      (list->ideque (concatenate (map ideque->list dqs))))))
 
+(: %ideque-append-binary (ideque ideque -> ideque))
 (define (%ideque-append-binary dq1 dq2)
   (cond ((zero? (%ideque-length dq1)) dq2)
         ((zero? (%ideque-length dq2)) dq1)
