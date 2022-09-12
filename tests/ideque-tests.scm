@@ -9,8 +9,6 @@
           (set! args (cdr args))
           x))))
 
-(test-group "ideque"
-
 (test-group "ideque/constructors"
  (test '() (ideque->list (ideque)))
  (test '() (ideque->list (list->ideque '())))
@@ -205,5 +203,3 @@
             (test '(1 2 3) (ideque->list (generator->ideque (generator 1 2 3))))
             (test '() (ideque->list (generator->ideque (generator))))
             )
-
-) ;; end test-group "ideque"
