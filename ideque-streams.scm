@@ -134,7 +134,7 @@
 
 ;; Front/back stream length differential factor.
 (: stream-length-factor fixnum)
-(define stream-length-factor 3)
+(define-constant stream-length-factor 3)
 
 (: make-deque (fixnum * fixnum * -> ideque))
 (define (make-deque lenf f lenr r)
