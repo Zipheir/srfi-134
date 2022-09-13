@@ -26,10 +26,19 @@
                  (lambda (junk)
                    (pseudo-random-integer 32768))))
 
+(define (random-fixnum-ideque)
+  (list->ideque (random-fixnum-list)))
+
 (define-syntax test-with-random-list
   (syntax-rules ()
     ((test-with-random-list var e0 e1 ...)
      (test-generative ((var random-fixnum-list))
+       e0 e1 ...))))
+
+(define-syntax test-with-random-ideque
+  (syntax-rules ()
+    ((test-with-random-list var e0 e1 ...)
+     (test-generative ((var random-fixnum-ideque))
        e0 e1 ...))))
 
 ;; Evaluates to true if the expression raises a type condition.
@@ -107,21 +116,102 @@
   )
 
 (test-group "ideque/predicates"
- (test-assert (ideque? (ideque)))
- (test-assert (not (ideque? 1)))
- (test-assert (ideque-empty? (ideque)))
- (test-assert (not (ideque-empty? (ideque 1))))
- (test-assert (ideque= eq?))
- (test-assert (ideque= eq? (ideque 1)))
- (test-assert (ideque= char-ci=? (ideque #\a #\b) (ideque #\A #\B)))
- (test-assert (ideque= char-ci=? (ideque) (ideque)))
- (test-assert (not (ideque= char-ci=? (ideque #\a #\b) (ideque #\A #\B #\c))))
- (test-assert (not (ideque= char-ci=? (ideque #\a #\b) (ideque #\A))))
- (test-assert (ideque= char-ci=? (ideque) (ideque) (ideque)))
- (test-assert (ideque= char-ci=? (ideque #\a #\b) (ideque #\A #\B) (ideque #\a #\B)))
- (test-assert (not (ideque= char-ci=? (ideque #\a #\b) (ideque #\A) (ideque #\a #\B))))
- (test-assert (not (ideque= char-ci=? (ideque #\a #\b) (ideque #\A #\B) (ideque #\A #\B #\c))))
- )
+  (test-group "ideque?"
+    (test-assert (not (ideque? 1)))
+    (test-with-random-ideque dq
+      (test-assert (ideque? dq)))
+    )
+
+  (test-group "ideque-empty?"
+    (test-assert (ideque-empty? (ideque)))
+    (test-with-random-list xs
+      (test-assert (if (null? xs)
+                       (ideque-empty? (list->ideque xs))
+                       (not (ideque-empty? (list->ideque xs))))))
+    )
+
+  (test-group "ideque="
+    (test-assert (ideque= eq?))
+    (test-assert (ideque= eq? (ideque 1)))
+    (test-assert (ideque= char-ci=? (ideque #\a #\b) (ideque #\A #\B)))
+    (test-assert (ideque= char-ci=? (ideque) (ideque)))
+    (test-assert (not (ideque= char-ci=?
+                               (ideque #\a #\b)
+                               (ideque #\A #\B #\c))))
+    (test-assert (not (ideque= char-ci=? (ideque #\a #\b) (ideque #\A))))
+    (test-assert (ideque= char-ci=? (ideque) (ideque) (ideque)))
+    (test-assert (ideque= char-ci=? (ideque #\a #\b)
+                                    (ideque #\A #\B)
+                                    (ideque #\a #\B)))
+    (test-assert (not (ideque= char-ci=? (ideque #\a #\b)
+                                         (ideque #\A)
+                                         (ideque #\a #\B))))
+    (test-assert (not (ideque= char-ci=? (ideque #\a #\b)
+                                         (ideque #\A #\B)
+                                         (ideque #\A #\B #\c))))
+
+    (test-with-random-ideque dq
+      (let ((dq* (ideque-add-front dq 1)))
+        (test-assert (ideque= eqv? dq dq))
+        (test-assert (ideque= eqv? (ideque-add-front dq 3)  ; not eq?
+                                   (ideque-add-front dq 3)))
+        (test #f (ideque= eqv? dq dq*))
+        (test #f (ideque= eqv? dq* dq))
+        (test-assert (ideque= eqv? dq dq dq))
+        (test #f (ideque= eqv? dq* dq dq))
+        (test #f (ideque= eqv? dq dq* dq))
+        (test #f (ideque= eqv? dq dq dq*))
+        ))
+    (test-assert (type-exception (ideque= 0)))
+    (test-assert (type-exception (ideque= eqv? 0)))
+    (test-assert (type-exception (ideque= eqv? (ideque) 0)))
+    (test-assert (type-exception (ideque= eqv? (ideque) (ideque) 0)))
+    )
+
+  (test-group "ideque-any"
+    (test 3 (ideque-any (lambda (x) (and (number? x) x))
+                        (ideque 'a 3 'b 'c 4 'd 'e)))
+    (test 5 (ideque-any (lambda (x) (and (number? x) x))
+                        (ideque 'a 'b 'c 'd 'e 5)))
+    (test #f (ideque-any (lambda (x) (and (number? x) x))
+                         (ideque 'a 'b 'c 'd 'e)))
+    ;; check if we won't see further once we found the result
+    (test 1 (ideque-any (lambda (x) (and (odd? x) x))
+                        (ideque 2 1 'a 'b 'c 'd)))
+
+    (test-with-random-list xs
+      (let ((dq (list->ideque xs)))
+        (test (pair? xs) (ideque-any (constantly #t) dq))
+        (test #f (ideque-any (constantly #f) dq))
+
+        ;; A/B test with SRFI 1 'any'.
+        (test (any odd? xs) (ideque-any odd? dq))
+        (test (any (lambda (x) (and (even? x) x)) xs)
+              (ideque-any (lambda (x) (and (even? x) x)) dq))
+        ))
+    )
+
+  (test-group "ideque-every"
+    (test 9 (ideque-every (lambda (x) (and (number? x) x))
+                          (ideque 1 5 3 2 9)))
+    (test #f (ideque-every (lambda (x) (and (number? x) x))
+                           (ideque 1 5 'a 2 9)))
+    ;; check if we won't see further once we found the result
+    (test #f (ideque-every (lambda (x) (and (odd? x) x))
+                           (ideque 1 2 'a 'b 'c 'd)))
+    )
+
+    (test-with-random-list xs
+      (let ((dq (list->ideque xs)))
+        (test (null? xs) (ideque-every (constantly #f) dq))
+        (test #t (ideque-every (constantly #t) dq))
+
+        ;; A/B test with SRFI 1 'every'.
+        (test (every odd? xs) (ideque-every odd? dq))
+        (test (every (lambda (x) (and (even? x) x)) xs)
+              (ideque-every (lambda (x) (and (even? x) x)) dq))
+      ))
+  )
 
 (test-group "ideque/queue-operations"
  (test-error (ideque-front (ideque)))
@@ -259,21 +349,6 @@
        (receive xs (ideque-break (lambda (n) (< n 5))
                                  (ideque 5 8 4 6 3 4 2 9))
                 (map ideque->list xs)))
- (test 3 (ideque-any (lambda (x) (and (number? x) x))
-                     (ideque 'a 3 'b 'c 4 'd 'e)))
- (test 5 (ideque-any (lambda (x) (and (number? x) x))
-                     (ideque 'a 'b 'c 'd 'e 5)))
- (test #f (ideque-any (lambda (x) (and (number? x) x))
-                      (ideque 'a 'b 'c 'd 'e)))
- (test 9 (ideque-every (lambda (x) (and (number? x) x))
-                       (ideque 1 5 3 2 9)))
- (test #f (ideque-every (lambda (x) (and (number? x) x))
-                        (ideque 1 5 'a 2 9)))
- ;; check if we won't see further once we found the result
- (test 1 (ideque-any (lambda (x) (and (odd? x) x))
-                     (ideque 2 1 'a 'b 'c 'd)))
- (test #f (ideque-every (lambda (x) (and (odd? x) x))
-                        (ideque 1 2 'a 'b 'c 'd)))
  )
 
 (test-group "ideque/conversions"
