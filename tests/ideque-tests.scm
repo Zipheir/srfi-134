@@ -128,6 +128,7 @@
       (test-assert (if (null? xs)
                        (ideque-empty? (list->ideque xs))
                        (not (ideque-empty? (list->ideque xs))))))
+    (test-assert (type-exception (ideque-empty? 0)))
     )
 
   (test-group "ideque="
@@ -189,6 +190,8 @@
         (test (any (lambda (x) (and (even? x) x)) xs)
               (ideque-any (lambda (x) (and (even? x) x)) dq))
         ))
+    (test-assert (type-exception (ideque-any #t (ideque))))
+    (test-assert (type-exception (ideque-any odd? #t)))
     )
 
   (test-group "ideque-every"
@@ -211,6 +214,8 @@
         (test (every (lambda (x) (and (even? x) x)) xs)
               (ideque-every (lambda (x) (and (even? x) x)) dq))
       ))
+    (test-assert (type-exception (ideque-every #t (ideque))))
+    (test-assert (type-exception (ideque-every odd? #t)))
   )
 
 (test-group "ideque/queue-operations"
