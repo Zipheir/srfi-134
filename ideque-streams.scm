@@ -234,6 +234,36 @@
       *empty*
       (%make-dq (dq-lenr dq) (dq-r dq) (dq-lenf dq) (dq-f dq))))
 
+;;; "Crossed" accessors.  These are extensions to the SRFI.
+
+(: ideque-pop-front (ideque -> * ideque))
+(define (ideque-pop-front dq)
+  (assert-type 'ideque-pop-front (ideque? dq))
+  (if (zero? (dq-lenf dq))
+      (if (zero? (dq-lenr dq))
+          (bounds-exception 'ideque-pop-front "empty deque" dq)
+          (values (stream-car (dq-r dq)) *empty*))
+      (let ((f (dq-f dq)))
+        (values (stream-car f)
+                (make-deque (- (dq-lenf dq) 1)
+                            (stream-cdr f)
+                            (dq-lenr dq)
+                            (dq-r dq))))))
+
+(: ideque-pop-back (ideque -> * ideque))
+(define (ideque-pop-back dq)
+  (assert-type 'ideque-pop-back (ideque? dq))
+  (if (zero? (dq-lenr dq))
+      (if (zero? (dq-lenf dq))
+          (bounds-exception 'ideque-pop-back "empty deque" dq)
+          (values (stream-car (dq-f dq)) *empty*))
+      (let ((r (dq-r dq)))
+        (values (stream-car r)
+                (make-deque (dq-lenf dq)
+                            (dq-f dq)
+                            (- (dq-lenr dq) 1)
+                            (stream-cdr r))))))
+
 ;;; Exported constructors
 
 (: ideque (#!rest -> ideque))

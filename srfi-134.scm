@@ -4,6 +4,7 @@
 
    ideque-front ideque-add-front ideque-remove-front
    ideque-back  ideque-add-back  ideque-remove-back
+   ideque-pop-front ideque-pop-back
 
    ideque-ref
    ideque-take ideque-take-right ideque-drop ideque-drop-right
