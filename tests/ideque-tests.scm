@@ -19,25 +19,92 @@
              (build (cons x xs)))))))
     (build '())))
 
-(test-group "ideque/constructors"
- (test '() (ideque->list (ideque)))
- (test '() (ideque->list (list->ideque '())))
- (test '(1 2 3) (ideque->list (ideque 1 2 3)))
- (test '(4 5 6 7) (ideque->list (list->ideque '(4 5 6 7))))
- (test '(10 9 8 7 6 5 4 3 2 1)
-       (ideque->list (ideque-unfold zero? values (lambda (n) (- n 1)) 10)))
- (test '(1 2 3 4 5 6 7 8 9 10)
-       (ideque->list (ideque-unfold-right zero? values (lambda (n) (- n 1)) 10)))
- (test '(0 2 4 6 8 10)
-       (ideque->list (ideque-tabulate 6 (lambda (n) (* n 2)))))
+(define length-bound 64)
 
- ;; corner cases
- (test '() (ideque->list
-            (ideque-unfold (lambda (n) #t) values (lambda (n) (+ n 1)) 0)))
- (test '() (ideque->list
-            (ideque-unfold-right (lambda (n) #t) values (lambda (n) (+ n 1)) 0)))
- (test '() (ideque->list (ideque-tabulate 0 values)))
- )
+(define (random-fixnum-list)
+  (list-tabulate (pseudo-random-integer length-bound)
+                 (lambda (junk)
+                   (pseudo-random-integer 32768))))
+
+(define-syntax test-with-random-list
+  (syntax-rules ()
+    ((test-with-random-list var e0 e1 ...)
+     (test-generative ((var random-fixnum-list))
+       e0 e1 ...))))
+
+;; Evaluates to true if the expression raises a type condition.
+(define-syntax type-exception
+  (syntax-rules ()
+    ((type-exception e)
+     (handle-exceptions con
+                        ((condition-predicate 'type) con)
+       e))))
+
+(test-group "ideque/constructors"
+  (test-group "ideque"
+    (test '() (ideque->list (ideque)))
+    (test-with-random-list xs
+      (test xs (ideque->list (apply ideque xs)))
+      )
+    )
+
+  (test-group "list->ideque"
+    (test '() (ideque->list (list->ideque '())))
+    (test-with-random-list xs
+      (test xs (ideque->list (list->ideque xs)))
+      )
+    (test-assert (type-exception (list->ideque #t)))
+    )
+
+  (test-group "ideque-unfold"
+    (test '() (ideque->list
+               (ideque-unfold (lambda (n) #t)
+                              values
+                              (lambda (n) (+ n 1))
+                              0)))
+    (test '(10 9 8 7 6 5 4 3 2 1)
+          (ideque->list (ideque-unfold zero?
+                                       values
+                                       (lambda (n) (- n 1)) 10)))
+    (test-with-random-list xs
+      (test xs (ideque->list (ideque-unfold null? car cdr xs)))
+      )
+    (test-assert (type-exception (ideque-unfold #t car cdr #f)))
+    (test-assert (type-exception (ideque-unfold null? #t cdr #f)))
+    (test-assert (type-exception (ideque-unfold null? car #t #f)))
+    )
+
+  (test-group "ideque-unfold-right"
+    (test '() (ideque->list
+               (ideque-unfold-right (lambda (n) #t)
+                                    values
+                                    (lambda (n) (+ n 1))
+                                    0)))
+    (test '(1 2 3 4 5 6 7 8 9 10)
+          (ideque->list
+           (ideque-unfold-right zero? values (lambda (n) (- n 1)) 10)))
+    (test-with-random-list xs
+      (test (reverse xs)
+            (ideque->list (ideque-unfold-right null? car cdr xs)))
+      )
+    (test-assert (type-exception (ideque-unfold-right #t car cdr #f)))
+    (test-assert (type-exception (ideque-unfold-right null? #t cdr #f)))
+    (test-assert (type-exception (ideque-unfold-right null? car #t #f)))
+    )
+
+  (test-group "ideque-tabulate"
+    (test '() (ideque->list (ideque-tabulate 0 values)))
+    (test '(0 2 4 6 8 10)
+          (ideque->list (ideque-tabulate 6 (lambda (n) (* n 2)))))
+    (test-with-random-list xs
+      (test xs
+            (ideque->list
+             (ideque-tabulate (length xs) (cut list-ref xs <>))))
+      )
+    (test-assert (type-exception (ideque-tabulate #t values)))
+    (test-assert (type-exception (ideque-tabulate 10 #t)))
+    ) 
+  )
 
 (test-group "ideque/predicates"
  (test-assert (ideque? (ideque)))
