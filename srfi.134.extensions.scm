@@ -1,10 +1,11 @@
 (module (srfi 134 extensions)
   (ideque-pop-front ideque-pop-back
+   ideque-rotate-left ideque-rotate-right
    ideque->stream stream->ideque
    )
 
 (import scheme
-        (only (chicken base) include unless)
+        (only (chicken base) fixnum? include unless case-lambda)
         (chicken condition)
         (chicken type)
         (srfi 41)
@@ -13,6 +14,12 @@
 (define-type ideque (struct <ideque>))
 
 (include "exceptions.scm")
+
+;;;; Utility
+
+(: natural-fixnum? (* --> boolean))
+(define (natural-fixnum? x)
+  (and (fixnum? x) (not (negative? x))))
 
 ;;;; "Crossed" accessors
 
@@ -43,6 +50,60 @@
                             (dq-f dq)
                             (- (dq-lenr dq) 1)
                             (stream-cdr r))))))
+
+;;;; Rotations
+
+;; TODO: Tune the 'count > 1' case.
+(: ideque-rotate-left (ideque #!optional fixnum -> ideque))
+(define ideque-rotate-left
+  (case-lambda
+    ((dq) (ideque-rotate-left dq 1))
+    ((dq count)
+     (assert-type 'ideque-rotate-left (ideque? dq))
+     (assert-type 'ideque-rotate-left (natural-fixnum? count))
+     (let lp ((dq dq) (i (the fixnum 0)))
+       (if (= i count)
+           dq
+           (lp (%rotate-left-single dq) (+ i 1)))))))
+
+(: %rotate-left-single (ideque -> ideque))
+(define (%rotate-left-single dq)
+  (let ((lenf (dq-lenf dq))
+        (front (dq-f dq)))
+    (if (zero? (dq-lenf dq))
+        (if (zero? (dq-lenr dq))
+            (bounds-exception 'ideque-rotate-left "empty ideque" dq)
+            dq)  ; singleton
+        (make-deque (- lenf 1)
+                    (stream-cdr front)
+                    (+ (dq-lenr dq) 1)
+                    (stream-cons (stream-car front) (dq-r dq))))))
+
+;; TODO: Tune the 'count > 1' case.
+(: ideque-rotate-right (ideque #!optional fixnum -> ideque))
+(define ideque-rotate-right
+  (case-lambda
+    ((dq) (ideque-rotate-right dq 1))
+    ((dq count)
+     (assert-type 'ideque-rotate-right (ideque? dq))
+     (assert-type 'ideque-rotate-right (natural-fixnum? count))
+     (let lp ((dq dq) (i (the fixnum 0)))
+       (if (= i count)
+           dq
+           (lp (%rotate-right-single dq) (+ i 1)))))))
+
+(: %rotate-right-single (ideque -> ideque))
+(define (%rotate-right-single dq)
+  (let ((lenr (dq-lenr dq))
+        (rear (dq-r dq)))
+    (if (zero? (dq-lenr dq))
+        (if (zero? (dq-lenf dq))
+            (bounds-exception 'ideque-rotate-right "empty ideque" dq)
+            dq)  ; singleton
+        (make-deque (+ (dq-lenf dq) 1)
+                    (stream-cons (stream-car rear) (dq-f dq))
+                    (- lenr 1)
+                    (stream-cdr rear)))))
 
 ;;;; Stream conversions
 
