@@ -29,10 +29,10 @@
    )
 
   (import (scheme)
-          (chicken base)
+          (except (chicken base) define-record define-record-type)
           (chicken condition)
           (chicken type)
-          (srfi 1)
+          (except (srfi 1) assoc member)
           (srfi 41)
           (srfi 134 internal)
           (typed-records))
