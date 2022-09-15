@@ -2,18 +2,22 @@
 
 This is an egg (library) for [CHICKEN 5](https://call-cc.org/)
 providing [SRFI 134](https://srfi.schemers.org/srfi-134) immutable
-deques.
+deques.  These are implemented by the "banker's deque" structure
+described by Chris Okasaki in _Purely Functional Data Structures_;
+these provide amortized O(1) running time for all basic deque
+operations (`ideque-front`, `ideque-remove-back`, etc.).
 
-# Issues
+# Documentation
 
-This "two-list" implementation is the one used by Gauche.  It's an
-"eager clone" of the banker's deque structure described by Chris
-Okasaki, and thus does not have the same amortized running-time
-guarantees.
+See [the CHICKEN wiki page](https://wiki.call-cc.org/eggref/5/srfi-134).
 
 # Author
 
-Kevin Wortman, John Cowan, and Shiro Kawai.
+SRFI 134 is by Kevin Wortman, John Cowan, and Shiro Kawai.
+
+This implementation began life as the two-list sample implementation
+written by Shiro Kawai.  It was rewritten and expanded by Wolfgang
+Corcoran-Mathe.
 
 # Maintainer
 
