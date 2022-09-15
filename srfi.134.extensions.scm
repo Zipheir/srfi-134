@@ -10,6 +10,8 @@
         (srfi 41)
         (srfi 134 internal))
 
+(define-type ideque (struct <ideque>))
+
 (include "exceptions.scm")
 
 ;;;; "Crossed" accessors
