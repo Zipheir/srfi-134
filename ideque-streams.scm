@@ -186,15 +186,15 @@
   (let ((lenf (quotient size 2))
         (lenr (quotient (+ size 1) 2)))
     (make-deque lenf
-              (stream-unfold init
-                             (lambda (n) (< n lenf))
-                             (lambda (n) (+ n 1))
-                             0)
-              lenr
-              (stream-unfold (lambda (n) (init (- size n 1)))
-                             (lambda (n) (< n lenr))
-                             (lambda (n) (+ n 1))
-                             0))))
+                (stream-unfold init
+                               (lambda (n) (< n lenf))
+                               (lambda (n) (+ n 1))
+                               0)
+                lenr
+                (stream-unfold (lambda (n) (init (- size n 1)))
+                               (lambda (n) (< n lenr))
+                               (lambda (n) (+ n 1))
+                               0))))
 
 (: ideque-unfold (procedure procedure procedure * -> ideque))
 (define (ideque-unfold p f g seed)
@@ -381,8 +381,10 @@
 (define (ideque-map proc dq)
   (assert-type 'ideque-map (procedure? proc))
   (assert-type 'ideque-map (ideque? dq))
-  (make-deque (dq-lenf dq) (stream-map proc (dq-f dq))
-            (dq-lenr dq) (stream-map proc (dq-r dq))))
+  (make-deque (dq-lenf dq)
+              (stream-map proc (dq-f dq))
+              (dq-lenr dq)
+              (stream-map proc (dq-r dq))))
 
 (: ideque-filter-map (procedure ideque -> ideque))
 (define (ideque-filter-map proc dq)
@@ -450,8 +452,9 @@
   (assert-type 'ideque-partition (ideque? dq))
   (receive (f1 f2) (stream-partition pred (dq-f dq))
     (receive (r1 r2) (stream-partition pred (dq-r dq))
-      (values (make-deque (stream-length f1) f1 (stream-length r1) r1)
-              (make-deque (stream-length f2) f2 (stream-length r2) r2)))))
+      (values
+       (make-deque (stream-length f1) f1 (stream-length r1) r1)
+       (make-deque (stream-length f2) f2 (stream-length r2) r2)))))
 
 (: *not-found* (pair boolean boolean))
 (define-constant *not-found* (cons #f #f)) ; unique value
