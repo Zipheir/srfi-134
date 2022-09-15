@@ -4,7 +4,6 @@
 
    ideque-front ideque-add-front ideque-remove-front
    ideque-back  ideque-add-back  ideque-remove-back
-   ideque-pop-front ideque-pop-back
 
    ideque-ref
    ideque-take ideque-take-right ideque-drop ideque-drop-right
@@ -27,7 +26,6 @@
 
    list->ideque ideque->list
    generator->ideque ideque->generator
-   ideque->stream stream->ideque
    )
 
   (import (scheme)
@@ -36,6 +34,7 @@
           (chicken type)
           (srfi 1)
           (srfi 41)
+          (srfi 134 internal)
           (typed-records))
 
   ;; SRFI 158 shim
@@ -48,6 +47,8 @@
                (reverse xs)
                (build (cons x xs)))))))
       (build '())))
+
+  (define-type ideque (struct <ideque>))
 
   (include "exceptions.scm")
   (include "ideque-streams.scm"))

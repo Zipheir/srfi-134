@@ -1,26 +1,4 @@
-;;;  Copyright (c) 2015  Shiro Kawai  <shiro@acm.org>
-;;;  Copyright © 2022 Wolfgang Corcoran-Mathe <wcm@sigwinch.xyz>
-;;;
-;;;  Permission is hereby granted, free of charge, to any person
-;;;  obtaining a copy of this software and associated documentation files
-;;;  (the "Software"), to deal in the Software without restriction,
-;;;  including without limitation the rights to use, copy, modify, merge,
-;;;  publish, distribute, sublicense, and/or sell copies of the Software,
-;;;  and to permit persons to whom the Software is furnished to do so,
-;;;  subject to the following conditions:
-;;;
-;;;  The above copyright notice and this permission notice shall be
-;;;  included in all copies or substantial portions of the Software.</p>
-;;;
-;;;  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-;;;  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-;;;  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-;;;  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-;;;  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-;;;  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-;;;  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-;;;  SOFTWARE
-;;;
+;;;; See LICENSE for copyright information.
 
 ;; This implements banker's deque as described in
 ;; Chris Okasaki's Purely Functional Data Structures.
@@ -121,47 +99,6 @@
            (elt= (stream-car s1) (stream-car s2))
            (stream=? elt= (stream-cdr s1) (stream-cdr s2)))))
 
-;;;; ideque type
-
-(define-record-type <ideque> (%make-dq lenf f lenr r) ideque?
-  (lenf dq-lenf : fixnum)  ; length of front chain
-  (f    dq-f    : *)       ; front chain
-  (lenr dq-lenr : fixnum)  ; length of rear chain
-  (r    dq-r    : *))      ; rear chain
-
-(define-type ideque (struct <ideque>))
-
-;; We use a singleton for empty deque
-(: *empty* ideque)
-(define *empty* (%make-dq 0 stream-null 0 stream-null))
-
-;; Internal constructor.  Returns a new ideque, with balancing 'front' and
-;; 'rear' chains.
-
-;; Front/back stream length differential factor.
-(: stream-length-factor fixnum)
-(define-constant stream-length-factor 3)
-
-(: make-deque (fixnum * fixnum * -> ideque))
-(define (make-deque lenf f lenr r)
-  (cond ((> lenf (+ (* lenr stream-length-factor) 1))
-         (let* ((i (quotient (+ lenf lenr) 2))
-                (j (- (+ lenf lenr) i))
-                (f. (stream-take i f))
-                (r. (stream-append
-                     r
-                     (stream-reverse (stream-drop i f)))))
-           (%make-dq i f. j r.)))
-        ((> lenr (+ (* lenf stream-length-factor) 1))
-         (let* ((j (quotient (+ lenf lenr) 2))
-                (i (- (+ lenf lenr) j))
-                (r. (stream-take j r))
-                (f. (stream-append
-                     f
-                     (stream-reverse (stream-drop j r)))))
-           (%make-dq i f. j r.)))
-        (else (%make-dq lenf f lenr r))))
-
 ;;;; Basic operations
 
 (: ideque-empty? (ideque -> boolean))
@@ -193,7 +130,7 @@
   (if (zero? (dq-lenf dq))
       (if (zero? (dq-lenr dq))
           (bounds-exception 'ideque-remove-front "empty deque" dq)
-          *empty*)
+          the-empty-ideque)
       (make-deque (- (dq-lenf dq) 1)
                   (stream-cdr (dq-f dq))
                   (dq-lenr dq)
@@ -221,7 +158,7 @@
   (if (zero? (dq-lenr dq))
       (if (zero? (dq-lenf dq))
           (bounds-exception 'ideque-remove-back "empty deque" dq)
-          *empty*)
+          the-empty-ideque)
       (make-deque (dq-lenf dq)
                   (dq-f dq)
                   (- (dq-lenr dq) 1)
@@ -231,45 +168,15 @@
 (define (ideque-reverse dq)
   (assert-type 'ideque-reverse (ideque? dq))
   (if (ideque-empty? dq)
-      *empty*
-      (%make-dq (dq-lenr dq) (dq-r dq) (dq-lenf dq) (dq-f dq))))
-
-;;; "Crossed" accessors.  These are extensions to the SRFI.
-
-(: ideque-pop-front (ideque -> * ideque))
-(define (ideque-pop-front dq)
-  (assert-type 'ideque-pop-front (ideque? dq))
-  (if (zero? (dq-lenf dq))
-      (if (zero? (dq-lenr dq))
-          (bounds-exception 'ideque-pop-front "empty deque" dq)
-          (values (stream-car (dq-r dq)) *empty*))
-      (let ((f (dq-f dq)))
-        (values (stream-car f)
-                (make-deque (- (dq-lenf dq) 1)
-                            (stream-cdr f)
-                            (dq-lenr dq)
-                            (dq-r dq))))))
-
-(: ideque-pop-back (ideque -> * ideque))
-(define (ideque-pop-back dq)
-  (assert-type 'ideque-pop-back (ideque? dq))
-  (if (zero? (dq-lenr dq))
-      (if (zero? (dq-lenf dq))
-          (bounds-exception 'ideque-pop-back "empty deque" dq)
-          (values (stream-car (dq-f dq)) *empty*))
-      (let ((r (dq-r dq)))
-        (values (stream-car r)
-                (make-deque (dq-lenf dq)
-                            (dq-f dq)
-                            (- (dq-lenr dq) 1)
-                            (stream-cdr r))))))
+      the-empty-ideque
+      (make-deque (dq-lenr dq) (dq-r dq) (dq-lenf dq) (dq-f dq))))
 
 ;;; Exported constructors
 
 (: ideque (#!rest -> ideque))
 (define (ideque . args)
   (if (null? args)
-      *empty*
+      the-empty-ideque
       (list->ideque args)))
 
 (: ideque-tabulate (fixnum procedure -> ideque))
@@ -278,7 +185,7 @@
   (assert-type 'ideque-tabulate (procedure? init))
   (let ((lenf (quotient size 2))
         (lenr (quotient (+ size 1) 2)))
-    (%make-dq lenf
+    (make-deque lenf
               (stream-unfold init
                              (lambda (n) (< n lenf))
                              (lambda (n) (+ n 1))
@@ -474,7 +381,7 @@
 (define (ideque-map proc dq)
   (assert-type 'ideque-map (procedure? proc))
   (assert-type 'ideque-map (ideque? dq))
-  (%make-dq (dq-lenf dq) (stream-map proc (dq-f dq))
+  (make-deque (dq-lenf dq) (stream-map proc (dq-f dq))
             (dq-lenr dq) (stream-map proc (dq-r dq))))
 
 (: ideque-filter-map (procedure ideque -> ideque))
@@ -685,15 +592,3 @@
 (define (generator->ideque gen)
   (assert-type 'generator->ideque (procedure? gen))
   (list->ideque (generator->list gen)))
-
-(: ideque->stream (ideque -> *))
-(define (ideque->stream dq)
-  (assert-type 'ideque->stream (ideque? dq))
-  (stream-append (dq-f dq) (stream-reverse (dq-r dq))))
-
-(: stream->ideque (* -> ideque))
-(define (stream->ideque stream)
-  (make-deque (stream-length stream)
-              stream
-              0
-              stream-null))
