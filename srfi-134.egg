@@ -7,7 +7,12 @@
  (dependencies srfi-1 srfi-41 typed-records)
  (test-dependencies test srfi-1)
  (components
-  (extension
-   srfi-134
-   (csc-options "-O3" "-d2")
-   (types-file))))
+  (extension srfi.134.internal
+    (types-file)
+    (csc-options "-O3" "-d0"))
+  (extension srfi-134
+    (component-dependencies srfi.134.internal)
+    (types-file))
+  (extension srfi.134.extensions
+    (component-dependencies srfi.134.internal)
+    (types-file))))
