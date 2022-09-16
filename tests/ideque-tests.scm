@@ -49,6 +49,14 @@
                         ((condition-predicate 'type) con)
        e))))
 
+;; Evaluates to true if the expression raises a bounds condition.
+(define-syntax bounds-exception
+  (syntax-rules ()
+    ((type-exception e)
+     (handle-exceptions con
+                        ((condition-predicate 'bounds) con)
+       e))))
+
 (test-group "ideque/constructors"
   (test-group "ideque"
     (test '() (ideque->list (ideque)))
@@ -240,19 +248,106 @@
 )
 
 (test-group "ideque/other-accessors"
- (test '(1 2 3 4) (ideque->list (ideque-take (ideque 1 2 3 4) 4)))
- (test '(1 2 3 4) (ideque->list (ideque-take-right (ideque 1 2 3 4) 4)))
- (test '() (ideque->list (ideque-drop (ideque 1 2 3 4) 4)))
- (test '() (ideque->list (ideque-drop-right (ideque 1 2 3 4) 4)))
- ;; out-of-range conditions
- (test-error (ideque->list (ideque-take (ideque 1 2 3 4 5 6 7) 10)))
- (test-error (ideque->list (ideque-take-right (ideque 1 2 3 4 5 6 7) 10)))
- (test-error (ideque-split-at (ideque 1 2 3 4 5 6 7) 10))
+  (test-group "ideque-take"
+    (test-assert (ideque-empty? (ideque-take (ideque) 0)))
+    (test-with-random-list xs
+      (let* ((dq (list->ideque xs))
+             (len (ideque-length dq))
+             (k (quotient len 2)))
+        (test-assert (ideque-empty? (ideque-take dq 0)))
+        (test xs (ideque->list (ideque-take dq len)))
+        (test (take xs k) (ideque->list (ideque-take dq k)))
+        (test-assert (bounds-exception (ideque-take dq (+ len 1))))
+        ))
+    (test-assert (type-exception (ideque-take #t 0)))
+    (test-assert (type-exception (ideque-take (ideque) 0.3)))
+    )
 
- (test '(3 2 1) (map (lambda (n) (ideque-ref (ideque 3 2 1) n)) '(0 1 2)))
- (test-error (ideque-ref (ideque 3 2 1) -1))
- (test-error (ideque-ref (ideque 3 2 1) 3))
- )
+  (test-group "ideque-take-right"
+    (test-assert (ideque-empty? (ideque-take-right (ideque) 0)))
+    (test-with-random-list xs
+      (let* ((dq (list->ideque xs))
+             (len (ideque-length dq))
+             (k (quotient len 2)))
+        (test-assert (ideque-empty? (ideque-take-right dq 0)))
+        (test xs (ideque->list (ideque-take-right dq len)))
+        (test (take-right xs k) (ideque->list (ideque-take-right dq k)))
+        (test-assert (bounds-exception (ideque-take-right dq (+ len 1))))
+        ))
+    (test-assert (type-exception (ideque-take-right #t 0)))
+    (test-assert (type-exception (ideque-take-right (ideque) 0.3)))
+    )
+
+  (test-group "ideque-drop"
+    (test-assert (ideque-empty? (ideque-drop (ideque) 0)))
+    (test-with-random-list xs
+      (let* ((dq (list->ideque xs))
+             (len (ideque-length dq))
+             (k (quotient len 2)))
+        (test-assert (ideque-empty? (ideque-drop dq len)))
+        (test xs (ideque->list (ideque-drop dq 0)))
+        (test (drop xs k) (ideque->list (ideque-drop dq k)))
+        (test-assert (bounds-exception (ideque-drop dq (+ len 1))))
+        ))
+    (test-assert (type-exception (ideque-drop #t 0)))
+    (test-assert (type-exception (ideque-drop (ideque) 0.3)))
+    )
+
+  (test-group "ideque-drop-right"
+    (test-assert (ideque-empty? (ideque-drop-right (ideque) 0)))
+    (test-with-random-list xs
+      (let* ((dq (list->ideque xs))
+             (len (ideque-length dq))
+             (k (quotient len 2)))
+        (test-assert (ideque-empty? (ideque-drop-right dq len)))
+        (test xs (ideque->list (ideque-drop-right dq 0)))
+        (test (drop-right xs k) (ideque->list (ideque-drop-right dq k)))
+        (test-assert (bounds-exception (ideque-drop-right dq (+ len 1))))
+        ))
+    (test-assert (type-exception (ideque-drop-right #t 0)))
+    (test-assert (type-exception (ideque-drop-right (ideque) 0.3)))
+    )
+
+  (test-group "ideque-split-at"
+    (test-assert
+     (let-values (((dq1 dq2) (ideque-split-at (ideque) 0)))
+       (and (ideque-empty? dq1) (ideque-empty? dq2))))
+    (test-with-random-list xs
+      (let* ((dq (list->ideque xs))
+             (len (ideque-length dq))
+             (k (quotient len 2)))
+        (test-assert
+         (let-values (((head tail) (ideque-split-at dq 0)))
+           (and (ideque-empty? head)
+                (equal? xs (ideque->list tail)))))
+        (test-assert
+         (let-values (((head tail) (ideque-split-at dq len)))
+           (and (equal? xs (ideque->list head))
+                (ideque-empty? tail))))
+        (test-assert
+         (let-values (((h-lis t-lis) (split-at xs k))
+                      ((h-dq t-dq) (ideque-split-at dq k)))
+           (and (equal? h-lis (ideque->list h-dq))
+                (equal? t-lis (ideque->list t-dq)))))
+        (test-assert (bounds-exception (ideque-split-at dq (+ len 1))))
+        ))
+    (test-assert (type-exception (ideque-split-at #t 0)))
+    (test-assert (type-exception (ideque-split-at (ideque) 0.3)))
+    )
+
+  (test-group "ideque-ref"
+    (test-with-random-ideque dq
+      (let ((len (ideque-length dq)))
+        (test (ideque->list dq)
+              (list-tabulate len (lambda (i) (ideque-ref dq i))))
+        (test 1 (ideque-ref (ideque-add-front dq 1) 0))
+        (test 99 (ideque-ref (ideque-add-back dq 99) len))
+        (test-assert (bounds-exception (ideque-ref dq (+ len 1))))
+      ))
+    (test-assert (type-exception (ideque-ref 0 0)))
+    (test-assert (type-exception (ideque-ref (ideque) 0.2)))
+    )
+  )
 
 (test-group "ideque/whole-ideque"
  (test 7 (ideque-length (ideque 1 2 3 4 5 6 7)))
