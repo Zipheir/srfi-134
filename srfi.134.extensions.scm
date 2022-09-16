@@ -1,6 +1,6 @@
 (module (srfi 134 extensions)
   (ideque-pop-front ideque-pop-back
-   ideque-rotate-left ideque-rotate-right
+   ideque-rotate
    ideque->stream stream->ideque
    )
 
@@ -51,20 +51,18 @@
                             (- (dq-lenr dq) 1)
                             (stream-cdr r))))))
 
-;;;; Rotations
+;;;; Rotation
 
-;; TODO: Tune the 'count > 1' case.
-(: ideque-rotate-left (ideque #!optional fixnum -> ideque))
-(define ideque-rotate-left
-  (case-lambda
-    ((dq) (ideque-rotate-left dq 1))
-    ((dq count)
-     (assert-type 'ideque-rotate-left (ideque? dq))
-     (assert-type 'ideque-rotate-left (natural-fixnum? count))
-     (let lp ((dq dq) (i (the fixnum 0)))
-       (if (= i count)
-           dq
-           (lp (%rotate-left-single dq) (+ i 1)))))))
+;; TODO: Tune.
+(: ideque-rotate (ideque #!optional fixnum -> ideque))
+(define (ideque-rotate dq count)
+  (assert-type 'ideque-rotate-left (ideque? dq))
+  (assert-type 'ideque-rotate-left (fixnum? count))
+  (stream-ref (stream-iterate (if (positive? count)
+                                  %rotate-left-single
+                                  %rotate-right-single)
+                              dq)
+              (abs count)))
 
 (: %rotate-left-single (ideque -> ideque))
 (define (%rotate-left-single dq)
@@ -78,19 +76,6 @@
                     (stream-cdr front)
                     (+ (dq-lenr dq) 1)
                     (stream-cons (stream-car front) (dq-r dq))))))
-
-;; TODO: Tune the 'count > 1' case.
-(: ideque-rotate-right (ideque #!optional fixnum -> ideque))
-(define ideque-rotate-right
-  (case-lambda
-    ((dq) (ideque-rotate-right dq 1))
-    ((dq count)
-     (assert-type 'ideque-rotate-right (ideque? dq))
-     (assert-type 'ideque-rotate-right (natural-fixnum? count))
-     (let lp ((dq dq) (i (the fixnum 0)))
-       (if (= i count)
-           dq
-           (lp (%rotate-right-single dq) (+ i 1)))))))
 
 (: %rotate-right-single (ideque -> ideque))
 (define (%rotate-right-single dq)
