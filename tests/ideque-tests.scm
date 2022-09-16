@@ -237,6 +237,8 @@
   (test-assert (ideque-empty? (ideque-remove-back (ideque 1))))
   (test 0 (ideque-front (ideque-add-front (ideque 1 2 3) 0)))
   (test 0 (ideque-back (ideque-add-back (ideque 1 2 3) 0)))
+  (test 0 (ideque-front (ideque-add-back (ideque) 0)))
+  (test 0 (ideque-back (ideque-add-front (ideque) 0)))
   ;; loss of front ideque
   (let ((id (ideque #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)))
    (set! id (ideque-remove-front (ideque-add-back id 1)))
