@@ -1,5 +1,3 @@
-;; Requires srfi-1 and srfi-121 (generators)
-
 ;; SRFI 158 shim
 (define (generator . args)
   (lambda ()
@@ -56,6 +54,8 @@
      (handle-exceptions con
                         ((condition-predicate 'bounds) con)
        e))))
+
+;;;; Tests
 
 (test-group "ideque/constructors"
   (test-group "ideque"
@@ -193,7 +193,6 @@
         (test (pair? xs) (ideque-any (constantly #t) dq))
         (test #f (ideque-any (constantly #f) dq))
 
-        ;; A/B test with SRFI 1 'any'.
         (test (any odd? xs) (ideque-any odd? dq))
         (test (any (lambda (x) (and (even? x) x)) xs)
               (ideque-any (lambda (x) (and (even? x) x)) dq))
@@ -217,7 +216,6 @@
         (test (null? xs) (ideque-every (constantly #f) dq))
         (test #t (ideque-every (constantly #t) dq))
 
-        ;; A/B test with SRFI 1 'every'.
         (test (every odd? xs) (ideque-every odd? dq))
         (test (every (lambda (x) (and (even? x) x)) xs)
               (ideque-every (lambda (x) (and (even? x) x)) dq))
