@@ -37,7 +37,7 @@
 
 (define-syntax test-with-random-ideque
   (syntax-rules ()
-    ((test-with-random-list var e0 e1 ...)
+    ((test-with-random-ideque var e0 e1 ...)
      (test-generative ((var random-fixnum-ideque))
        e0 e1 ...))))
 
