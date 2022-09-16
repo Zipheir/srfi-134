@@ -240,7 +240,7 @@
   (test 0 (ideque-front (ideque-add-back (ideque) 0)))
   (test 0 (ideque-back (ideque-add-front (ideque) 0)))
   ;; loss of front ideque
-  (let ((id (ideque #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)))
+  (let ((id (list->ideque (make-list 18 #f))))
    (set! id (ideque-remove-front (ideque-add-back id 1)))
    (set! id (ideque-remove-front (ideque-add-back id 1)))
    (set! id (ideque-remove-front (ideque-add-back id 1)))
