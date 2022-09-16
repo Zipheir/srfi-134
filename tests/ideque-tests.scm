@@ -27,12 +27,6 @@
 (define (random-fixnum-ideque)
   (list->ideque (random-fixnum-list)))
 
-(define-syntax test-with-random-list
-  (syntax-rules ()
-    ((test-with-random-list var e0 e1 ...)
-     (test-generative ((var random-fixnum-list))
-       e0 e1 ...))))
-
 (define-syntax test-with-random-lists
   (ir-macro-transformer
    (lambda (exp _inject _compare)
@@ -68,14 +62,14 @@
 (test-group "ideque/constructors"
   (test-group "ideque"
     (test '() (ideque->list (ideque)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test xs (ideque->list (apply ideque xs)))
       )
     )
 
   (test-group "list->ideque"
     (test '() (ideque->list (list->ideque '())))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test xs (ideque->list (list->ideque xs)))
       )
     (test-assert (type-exception (list->ideque #t)))
@@ -91,7 +85,7 @@
           (ideque->list (ideque-unfold zero?
                                        values
                                        (lambda (n) (- n 1)) 10)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test xs (ideque->list (ideque-unfold null? car cdr xs)))
       )
     (test-assert (type-exception (ideque-unfold #t car cdr #f)))
@@ -108,7 +102,7 @@
     (test '(1 2 3 4 5 6 7 8 9 10)
           (ideque->list
            (ideque-unfold-right zero? values (lambda (n) (- n 1)) 10)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test (reverse xs)
             (ideque->list (ideque-unfold-right null? car cdr xs)))
       )
@@ -121,7 +115,7 @@
     (test '() (ideque->list (ideque-tabulate 0 values)))
     (test '(0 2 4 6 8 10)
           (ideque->list (ideque-tabulate 6 (lambda (n) (* n 2)))))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test xs
             (ideque->list
              (ideque-tabulate (length xs) (cut list-ref xs <>))))
@@ -140,7 +134,7 @@
 
   (test-group "ideque-empty?"
     (test-assert (ideque-empty? (ideque)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test-assert (if (null? xs)
                        (ideque-empty? (list->ideque xs))
                        (not (ideque-empty? (list->ideque xs))))))
@@ -196,7 +190,7 @@
     (test 1 (ideque-any (lambda (x) (and (odd? x) x))
                         (ideque 2 1 'a 'b 'c 'd)))
 
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let ((dq (list->ideque xs)))
         (test (pair? xs) (ideque-any (constantly #t) dq))
         (test #f (ideque-any (constantly #f) dq))
@@ -219,7 +213,7 @@
                            (ideque 1 2 'a 'b 'c 'd)))
     )
 
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let ((dq (list->ideque xs)))
         (test (null? xs) (ideque-every (constantly #f) dq))
         (test #t (ideque-every (constantly #t) dq))
@@ -258,7 +252,7 @@
 (test-group "ideque/other-accessors"
   (test-group "ideque-take"
     (test-assert (ideque-empty? (ideque-take (ideque) 0)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let* ((dq (list->ideque xs))
              (len (ideque-length dq))
              (k (quotient len 2)))
@@ -273,7 +267,7 @@
 
   (test-group "ideque-take-right"
     (test-assert (ideque-empty? (ideque-take-right (ideque) 0)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let* ((dq (list->ideque xs))
              (len (ideque-length dq))
              (k (quotient len 2)))
@@ -288,7 +282,7 @@
 
   (test-group "ideque-drop"
     (test-assert (ideque-empty? (ideque-drop (ideque) 0)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let* ((dq (list->ideque xs))
              (len (ideque-length dq))
              (k (quotient len 2)))
@@ -303,7 +297,7 @@
 
   (test-group "ideque-drop-right"
     (test-assert (ideque-empty? (ideque-drop-right (ideque) 0)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let* ((dq (list->ideque xs))
              (len (ideque-length dq))
              (k (quotient len 2)))
@@ -320,7 +314,7 @@
     (test-assert
      (let-values (((dq1 dq2) (ideque-split-at (ideque) 0)))
        (and (ideque-empty? dq1) (ideque-empty? dq2))))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let* ((dq (list->ideque xs))
              (len (ideque-length dq))
              (k (quotient len 2)))
@@ -361,7 +355,7 @@
   (test-group "ideque-length"
     (test 7 (ideque-length (ideque 1 2 3 4 5 6 7)))
     (test 0 (ideque-length (ideque)))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (let ((dq (list->ideque xs))
             (len (length xs)))
         (test len (ideque-length dq))
@@ -409,7 +403,7 @@
 
   (test-group "ideque-reverse"
     (test-assert (ideque-empty? (ideque-reverse (ideque))))
-    (test-with-random-list xs
+    (test-with-random-lists (xs)
       (test (reverse xs)
             (ideque->list (ideque-reverse (list->ideque xs))))
       )
