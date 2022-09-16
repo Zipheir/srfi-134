@@ -7,7 +7,9 @@ end.
 This egg provides a stream-based implementation of the
 Banker's Deque representation described by Chris Okasaki in ''Purely
 Functional Data Structures''.  Basic deque operations ({{ideque-front}},
-{{ideque-add-back}}, etc.) run in amortized constant time.
+{{ideque-add-back}}, etc.) run in amortized constant time.  Some
+extensions to the SRFI library are also included in the
+{{(srfi 134 extensions)}} module.
 
 [[toc:]]
 
@@ -276,6 +278,23 @@ Conversion between [[srfi-158]] generators and ideques.
 A generator is a procedure that is called
 repeatedly with no arguments to generate consecutive values, and returns an
 end-of-file object when it has no more values to return.
+
+== Extensions
+
+The following forms are extensions to SRFI 134.  Import the
+{{(srfi 134 extensions)}} module to use them.
+
+<procedure>(ideque-pop-front ideque)</procedure>
+<procedure>(ideque-pop-back ideque)</procedure>
+
+Returns two values: the front/back element of ''ideque'' and an ideque
+of the remaining elements.  It is an error if ''ideque'' is empty.
+
+<procedure>(ideque->stream ideque)</procedure>
+<procedure>(stream->ideque stream)</procedure>
+
+Conversion between ideque and [[srfi-41]] streams.  FIFO order is
+preserved.
 
 == Exceptions
 
