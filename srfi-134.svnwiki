@@ -1,0 +1,361 @@
+== SRFI-134: Immutable deques
+
+This SRFI defines immutable deques. A deque is a double-ended queue, a
+sequence which allows elements to be added or removed efficiently from either
+end. A structure is immutable when all its operations leave the structure
+unchanged.
+
+This is a simple two-list implementation, by Shiro Kawai, based on the
+Banker's Deque representation described by Chris Okasaki in ''Purely
+Functional Data Structures''.  Unlike that book's implementation, though,
+this one does not use lazy evaluation and memoization and may not have
+the same performance.
+
+[[toc:]]
+
+== SRFI Description
+
+This page includes excerpts from the
+[[https://srfi.schemers.org/srfi-134|SRFI document]], but is primarily
+intended to document the forms exported by the egg.  For a full
+description of the SRFI, see the full SRFI document.
+
+== Authors
+
+Kevin Wortman & John Cowan (text), and Shiro Kawai (implementation).
+
+== Specification
+
+Deques are disjoint from all other Scheme types.
+
+== Procedures
+
+=== Constructors
+
+<procedure>(ideque element ...)</procedure>
+
+Returns an ideque containing the ''elements''. The first element (if any) will
+be at the front of the ideque and the last element (if any) will be at the
+back. Takes O(''n'') time, where ''n'' is the number of elements.
+
+<procedure>(ideque-tabulate n proc)</procedure>
+
+Invokes the predicate ''proc'' on every exact integer from 0 (inclusive) to ''n''
+(exclusive). Returns an ideque containing the results in order of generation.
+
+<procedure>(ideque-unfold stop? mapper successor seed)</procedure>
+
+Invokes the predicate ''stop?'' on ''seed''. If it returns false, generate the
+next result by applying ''mapper'' to ''seed'', generate the next seed by applying
+''successor'' to ''seed'', and repeat this algorithm with the new seed. If ''stop?''
+returns true, return an ideque containing the results in order of
+accumulation.
+
+<procedure>(ideque-unfold-right stop? mapper successor seed)</procedure>
+
+Invokes the predicate ''stop?'' on ''seed''. If it returns false, generate the
+next result by applying ''mapper'' to ''seed'', generate the next seed by applying
+''successor'' to ''seed'', and repeat the algorithm with the new seed. If ''stop?''
+returns true, return an ideque containing the results in reverse order of
+accumulation.
+
+=== Predicates
+
+<procedure>(ideque? x)</procedure>
+
+Returns {{#t}} if ''x'' is an ideque, and {{#f}} otherwise. Takes O(1) time.
+
+<procedure>(ideque-empty? ideque)</procedure>
+
+Returns {{#t}} if ''ideque'' contains zero elements, and {{#f}} otherwise. Takes
+O(1) time.
+
+<procedure>(ideque= elt= ideque ...)</procedure>
+
+Determines ideque equality, given an element-equality procedure. Ideque A
+equals ideque B if they are of the same length, and their corresponding
+elements are equal, as determined by ''elt=''. If the element-comparison
+procedure's first argument is from ''idequei'', then its second argument is from
+''idequei+1'', i.e. it is always called as {{(elt= a b)}} for ''a'' an element
+of ideque A, and ''b'' an element of ideque B.
+
+In the n-ary case, every ''idequei'' is compared to ''idequei+1'' (as opposed, for
+example, to comparing ''ideque1'' to every ''idequei'', for i > 1). If there are
+zero or one ideque arguments, {{ideque=}} simply returns true. The name does not
+end in a question mark for compatibility with the SRFI-1 procedure {{list=}}.
+
+Note that the dynamic order in which the ''elt='' procedure is applied to pairs
+of elements is not specified. For example, if {{ideque=}} is applied to three
+ideques, A, B, and C, it may first completely compare A to B, then compare B
+to C, or it may compare the first elements of A and B, then the first elements
+of B and C, then the second elements of A and B, and so forth.
+
+The equality procedure must be consistent with {{eq?}}. Note that this implies
+that two ideques which are {{eq?}} are always {{ideque=}}, as well;
+implementations may exploit this fact to "short-cut" the element-by-element
+comparisons.
+
+<procedure>(ideque-any pred ideque)</procedure>
+
+<procedure>(ideque-every pred ideque)</procedure>
+
+Invokes ''pred'' on the elements of the ''ideque'' in order until one call returns
+a true/false value, which is then returned. If there are no elements, returns
+{{#f}}/{{#t}}.
+
+=== Queue operations
+
+<procedure>(ideque-front ideque)</procedure>
+
+<procedure>(ideque-back ideque)</procedure>
+
+Returns the front/back element of ''ideque''. It is an error for ''ideque'' to be
+empty.
+
+<procedure>(ideque-remove-front ideque)</procedure>
+
+<procedure>(ideque-remove-back ideque)</procedure>
+
+Returns an ideque with the front/back element of ''ideque'' removed. It is an
+error for ''ideque'' to be empty.
+
+<procedure>(ideque-add-front ideque obj)</procedure>
+
+<procedure>(ideque-add-back ideque obj)</procedure>
+
+Returns an ideque with ''obj'' pushed to the front/back of ''ideque''.
+
+=== Other accessors
+
+<procedure>(ideque-ref ideque n)</procedure>
+
+Returns the ''nth'' element of ''ideque''. It is an error unless ''n'' is less than
+the length of ''ideque''.
+
+<procedure>(ideque-take ideque n)</procedure>
+
+<procedure>(ideque-take-right ideque n)</procedure>
+
+Returns an ideque containing the first/last ''n'' elements of ''ideque''. It is an
+error if ''n'' is greater than the length of ''ideque''.
+
+<procedure>(ideque-drop ideque n)</procedure>
+
+<procedure>(ideque-drop-right ideque n)</procedure>
+
+Returns an ideque containing all but the first/last ''n'' elements of ''ideque''.
+It is an error if ''n'' is greater than the length of ''ideque''.
+
+<procedure>(ideque-split-at ideque n)</procedure>
+
+Returns two values, the results of {{(ideque-take ideque n)}} and
+{{(ideque-drop ideque n)}} respectively, but may be more efficient.
+
+=== The whole ideque
+
+<procedure>(ideque-length ideque)</procedure>
+
+Returns the length of ''ideque'' as an exact integer.
+
+<procedure>(ideque-append ideque ...)</procedure>
+
+Returns an ideque with the contents of the ''ideque'' followed by the others, or
+an empty ideque if there are none.
+
+<procedure>(ideque-reverse ideque)</procedure>
+
+Returns an ideque containing the elements of ''ideque'' in reverse order.
+
+<procedure>(ideque-count pred ideque)</procedure>
+
+''pred'' is a procedure taking a single value and returning a single value. It
+is applied element-wise to the elements of ideque, and a count is tallied of
+the number of elements that produce a true value. This count is returned. The dynamic order of calls to pred is unspecified.
+
+<procedure>(ideque-zip ideque1 ideque2 ...)</procedure>
+
+Returns an ideque of lists (not ideques) each of which contains the
+corresponding elements of ideques in the order specified. Terminates when all
+the elements of any of the ideques have been processed.
+
+=== Mapping
+
+<procedure>(ideque-map proc ideque)</procedure>
+
+Applies ''proc'' to the elements of ''ideque'' and returns an ideque containing
+the results in order. The dynamic order of calls to ''proc'' is unspecified.
+
+<procedure>(ideque-filter-map proc ideque)</procedure>
+
+Applies ''proc'' to the elements of ''ideque'' and returns an ideque containing
+the true (i.e. non-{{#f}}) results in order. The dynamic order of calls to
+''proc'' is unspecified.
+
+<procedure>(ideque-for-each proc ideque)</procedure>
+
+<procedure>(ideque-for-each-right proc ideque)</procedure>
+
+Applies ''proc'' to the elements of ''ideque'' in forward/reverse order and
+returns an unspecified result.
+
+<procedure>(ideque-fold proc nil ideque)</procedure>
+
+<procedure>(ideque-fold-right proc nil ideque)</procedure>
+
+Invokes ''proc'' on the elements of ''ideque'' in forward/reverse order, passing
+the result of the previous invocation as a second argument. For the first
+invocation, ''nil'' is used as the second argument. Returns the result of the
+last invocation, or ''nil'' if there was no invocation.
+
+<procedure>(ideque-append-map proc ideque)</procedure>
+
+Applies ''proc'' to the elements of ''ideque''. It is an error if the result is
+not a list. Returns an ideque containing the elements of the lists in order.
+
+=== Filtering
+
+<procedure>(ideque-filter pred ideque)</procedure>
+
+<procedure>(ideque-remove pred ideque)</procedure>
+
+Returns an ideque containing the elements of ''ideque'' that do/do not satisfy
+''pred''.
+
+<procedure>(ideque-partition proc ideque)</procedure>
+
+Returns two values, the results of {{(ideque-filter pred ideque)}} and
+{{(ideque-remove pred ideque)}} respectively.
+
+=== Searching
+
+<procedure>(ideque-find pred ideque [ failure ])</procedure>
+
+<procedure>(ideque-find-right pred ideque [ failure ])</procedure>
+
+Returns the first/last element of ''ideque'' that satisfies ''pred''. If there is
+no such element, returns the result of invoking the thunk ''failure''; the
+default thunk is {{(lambda () #f)}}.
+
+<procedure>(ideque-take-while pred ideque)</procedure>
+
+<procedure>(ideque-take-while-right pred ideque)</procedure>
+
+Returns an ideque containing the longest initial/final prefix of elements in
+''ideque'' all of which satisfy ''pred''.
+
+<procedure>(ideque-drop-while pred ideque)</procedure>
+
+<procedure>(ideque-drop-while-right pred ideque)</procedure>
+
+Returns an ideque which omits the longest initial/final prefix of elements in
+''ideque'' all of which satisfy ''pred'', but includes all other elements of
+''ideque''.
+
+<procedure>(ideque-span pred ideque)</procedure>
+
+<procedure>(ideque-break pred ideque)</procedure>
+
+Returns two values, the initial prefix of the elements of ''ideque'' which do/do
+not satisfy ''pred'', and the remaining elements.
+
+=== Conversion
+
+<procedure>(list->ideque list)</procedure>
+
+<procedure>(ideque->list ideque)</procedure>
+
+Conversion between ideque and list structures. FIFO order is preserved, so the
+front of a list corresponds to the front of an ideque.
+
+<procedure>(generator->ideque generator)</procedure>
+
+<procedure>(ideque->generator ideque)</procedure>
+
+Conversion between [[srfi-158]] generators and ideques.
+A generator is a procedure that is called
+repeatedly with no arguments to generate consecutive values, and returns an
+end-of-file object when it has no more values to return.
+
+== Exceptions
+
+This egg tries to give useful information when things go wrong. Procedure
+arguments are type-checked; when a type check fails, a condition of kind
+{{(exn type assertion)}} is raised. Ideque bounds errors are signaled by
+{{(exn bounds assertion)}} conditions. This conforms to the condition
+protocol used by CHICKEN's internal libraries.
+
+See the [[Module (chicken condition)]] page for more information.
+
+== About this egg
+
+=== Dependencies
+
+The [[srfi-1]] and [[typed-records]] eggs are required.
+
+=== Maintainer
+
+Wolfgang Corcoran-Mathe <wcm at sigwinch dot xyzzy without the zy>
+
+=== Repository
+
+[[https://github.com/Zipheir/srfi-134|GitHub]]
+
+=== Version history
+
+; 0.1 : (2020-11-30) Initial release.
+; 0.2 : (2021-01-02) Apply upstream fixes for {{ideque-take}} and {{ideque-drop}}.
+; 0.2.1 : (2021-10-19) Add types and increase compiler optimization setting.
+; 1.0.0 : (2022-08-22) Improve type and bounds checks. Follow CHICKEN's internal condition protocol.
+
+== SRFI license
+
+Copyright (C) John Cowan, Kevin Wortman (2015). All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+== Implementation license
+
+Copyright (c) 2015 Shiro Kawai <shiro@acm.org>
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the authors nor the names of its contributors
+may be used to endorse or promote products derived from this
+software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
