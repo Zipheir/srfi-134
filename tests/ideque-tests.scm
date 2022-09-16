@@ -211,8 +211,6 @@
     ;; check if we won't see further once we found the result
     (test #f (ideque-every (lambda (x) (and (odd? x) x))
                            (ideque 1 2 'a 'b 'c 'd)))
-    )
-
     (test-with-random-lists (xs)
       (let ((dq (list->ideque xs)))
         (test (null? xs) (ideque-every (constantly #f) dq))
@@ -224,6 +222,7 @@
       ))
     (test-assert (type-exception (ideque-every #t (ideque))))
     (test-assert (type-exception (ideque-every odd? #t)))
+    )
   )
 
 (test-group "ideque/queue-operations"
