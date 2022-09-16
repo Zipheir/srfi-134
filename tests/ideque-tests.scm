@@ -241,11 +241,11 @@
   (test 0 (ideque-back (ideque-add-front (ideque) 0)))
   ;; loss of front ideque
   (let ((id (list->ideque (make-list 18 #f))))
-   (set! id (ideque-remove-front (ideque-add-back id 1)))
-   (set! id (ideque-remove-front (ideque-add-back id 1)))
-   (set! id (ideque-remove-front (ideque-add-back id 1)))
-   (test #f (ideque-front (ideque-take-right id 12))))
-)
+    (set! id (ideque-remove-front (ideque-add-back id 1)))
+    (set! id (ideque-remove-front (ideque-add-back id 1)))
+    (set! id (ideque-remove-front (ideque-add-back id 1)))
+    (test #f (ideque-front (ideque-take-right id 12))))
+  )
 
 (test-group "ideque/other-accessors"
   (test-group "ideque-take"
