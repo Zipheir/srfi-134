@@ -149,6 +149,7 @@
   (assert-type 'ideque-back (ideque? dq))
   (if (zero? (dq-lenr dq))
       (if (zero? (dq-lenf dq))
+          (bounds-exception 'ideque-back "empty deque" dq)
           (stream-car (dq-f dq)))
       (stream-car (dq-r dq))))
 
