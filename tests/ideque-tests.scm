@@ -33,6 +33,14 @@
      (test-generative ((var random-fixnum-list))
        e0 e1 ...))))
 
+(define-syntax test-with-random-lists
+  (ir-macro-transformer
+   (lambda (exp _inject _compare)
+     `(test-generative ,(map (lambda (v)
+                               `(,v (lambda () (random-fixnum-list))))
+                             (cadr exp))
+        ,@(cddr exp)))))
+
 (define-syntax test-with-random-ideque
   (syntax-rules ()
     ((test-with-random-list var e0 e1 ...)
@@ -350,30 +358,88 @@
   )
 
 (test-group "ideque/whole-ideque"
- (test 7 (ideque-length (ideque 1 2 3 4 5 6 7)))
- (test 0 (ideque-length (ideque)))
- (test '() (ideque->list (ideque-append)))
- (test '() (ideque->list (ideque-append (ideque) (ideque))))
- (test '(1 2 3 a b c d 5 6 7 8 9)
-       (ideque->list (ideque-append (ideque 1 2 3)
-                                    (ideque 'a 'b 'c 'd)
-                                    (ideque)
-                                    (ideque 5 6 7 8 9))))
- (test '() (ideque->list (ideque-reverse (ideque))))
- (test '(5 4 3 2 1) (ideque->list (ideque-reverse (ideque 1 2 3 4 5))))
- (test 0 (ideque-count odd? (ideque)))
- (test 3 (ideque-count odd? (ideque 1 2 3 4 5)))
- (test '((1 a) (2 b) (3 c))
-       (ideque->list (ideque-zip (ideque 1 2 3) (ideque 'a 'b 'c 'd 'e))))
- (test '((1 a x) (2 b y) (3 c z))
-       (ideque->list (ideque-zip (ideque 1 2 3 4 5)
-                                 (ideque 'a 'b 'c 'd 'e)
-                                 (ideque 'x 'y 'z))))
- (test '((1) (2) (3))
-       (ideque->list (ideque-zip (ideque 1 2 3))))
- (test '()
-       (ideque->list (ideque-zip (ideque 1 2 3) (ideque))))
- )
+  (test-group "ideque-length"
+    (test 7 (ideque-length (ideque 1 2 3 4 5 6 7)))
+    (test 0 (ideque-length (ideque)))
+    (test-with-random-list xs
+      (let ((dq (list->ideque xs))
+            (len (length xs)))
+        (test len (ideque-length dq))
+        (test (+ len 1) (ideque-length (ideque-add-front dq 1)))
+        (test (+ len 1) (ideque-length (ideque-add-back dq 1)))
+        (test-assert
+         (or (zero? len)
+             (= (- len 1) (ideque-length (ideque-remove-front dq)))))
+        (test-assert
+         (or (zero? len)
+             (= (- len 1) (ideque-length (ideque-remove-back dq)))))
+        ))
+    (test-assert (type-exception (ideque-length '())))
+    )
+
+  (test-group "ideque-append"
+    (test-assert (ideque-empty? (ideque-append)))
+    (test-assert (ideque-empty? (ideque-append (ideque))))
+    (test-assert (ideque-empty? (ideque-append (ideque) (ideque))))
+
+    (test-with-random-lists (xs ys zs)
+      (let ((dq-x (list->ideque xs))
+            (dq-y (list->ideque ys))
+            (dq-z (list->ideque zs)))
+        (test xs (ideque->list (ideque-append dq-x)))
+        (test xs (ideque->list (ideque-append (ideque) dq-x)))
+        (test xs (ideque->list (ideque-append (ideque) dq-x (ideque))))
+        (test (append xs ys) (ideque->list (ideque-append dq-x dq-y)))
+        (test (append xs ys)
+              (ideque->list (ideque-append dq-x (ideque) dq-y)))
+        (test (append xs ys zs)
+              (ideque->list (ideque-append dq-x dq-y dq-z)))
+        (test (append xs ys zs)
+              (ideque->list (ideque-append (ideque)
+                                           dq-x
+                                           dq-y
+                                           (ideque)
+                                           dq-z
+                                           (ideque))))
+        ))
+    (test-assert (type-exception (ideque-append '(1))))
+    (test-assert (type-exception (ideque-append (ideque) #t)))
+    (test-assert (type-exception (ideque-append (ideque) (ideque) 0)))
+    )
+
+  (test-group "ideque-reverse"
+    (test-assert (ideque-empty? (ideque-reverse (ideque))))
+    (test-with-random-list xs
+      (test (reverse xs)
+            (ideque->list (ideque-reverse (list->ideque xs))))
+      )
+    (test-assert (type-exception (ideque-reverse '())))
+    )
+
+  (test-group "ideque-count"
+    (test 0 (ideque-count (constantly #t) (ideque)))
+    (test-with-random-ideque dq
+      (test 0 (ideque-count (constantly #f) dq))
+      (test (ideque-length dq) (ideque-count (constantly #t) dq))
+      (test (count odd? (ideque->list dq)) (ideque-count odd? dq))
+      )
+    (test-assert (type-exception (ideque-count #t (ideque))))
+    (test-assert (type-exception (ideque-count odd? 0)))
+    )
+
+  (test-group "ideque-zip"
+    (test-assert (ideque-empty? (ideque-zip (ideque) (ideque))))
+    (test-assert (ideque-empty? (ideque-zip (ideque 1) (ideque))))
+    (test-assert (ideque-empty? (ideque-zip (ideque) (ideque 1))))
+    (test-with-random-lists (xs ys zs)
+      (let ((dq-x (list->ideque xs))
+            (dq-y (list->ideque ys))
+            (dq-z (list->ideque zs)))
+        (test (zip xs ys) (ideque->list (ideque-zip dq-x dq-y)))
+        (test (zip xs ys zs) (ideque->list (ideque-zip dq-x dq-y dq-z)))
+      ))
+    )
+  )
 
 (test-group "ideque/mapping"
  (test-assert (ideque-empty? (ideque-map list (ideque))))
