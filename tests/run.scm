@@ -1,6 +1,7 @@
 (import (chicken base)
         (chicken condition)
         (chicken random)
+        (chicken syntax)
         (srfi 134)
         (srfi 134 extensions)
         (srfi 1)
