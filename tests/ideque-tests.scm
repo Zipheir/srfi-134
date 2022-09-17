@@ -547,14 +547,66 @@
  )
 
 (test-group "ideque/filtering"
- (test '(1 3 5)
-       (ideque->list (ideque-filter odd? (ideque 1 2 3 4 5))))
- (test '(2 4)
-       (ideque->list (ideque-remove odd? (ideque 1 2 3 4 5))))
- (test '((1 3 5) (2 4))
-       (receive xs (ideque-partition odd? (ideque 1 2 3 4 5))
-                (map ideque->list xs)))
- )
+  (test-group "ideque-filter"
+    (test-assert (ideque-empty? (ideque-filter odd? (ideque))))
+    (test-with-random-lists (xs)
+      (let ((dq (list->ideque xs)))
+        (test-assert (ideque-empty?
+                      (ideque-filter (constantly #f) dq)))
+        (test-assert
+         (ideque= eqv? dq (ideque-filter (constantly #t) dq)))
+        (test-assert
+         (ideque= eqv? dq (ideque-filter number?
+                                         (ideque-add-front dq 'z))))
+        (test (filter odd? xs) (ideque->list (ideque-filter odd? dq)))
+        ))
+    (test-assert (type-exception (ideque-filter 0 (ideque))))
+    (test-assert (type-exception (ideque-filter odd? 0)))
+    )
+
+  (test-group "ideque-remove"
+    (test-assert (ideque-empty? (ideque-remove odd? (ideque))))
+    (test-with-random-lists (xs)
+      (let ((dq (list->ideque xs)))
+        (test-assert (ideque-empty?
+                      (ideque-remove (constantly #t) dq)))
+        (test-assert
+         (ideque= eqv? dq (ideque-remove (constantly #f) dq)))
+        (test-assert
+         (ideque= eqv? (ideque 'z)
+                       (ideque-remove number?
+                                      (ideque-add-front dq 'z))))
+        (test (remove odd? xs) (ideque->list (ideque-remove odd? dq)))
+        ))
+    (test-assert (type-exception (ideque-remove 0 (ideque))))
+    (test-assert (type-exception (ideque-remove odd? 0)))
+    )
+
+  (test-group "ideque-partition"
+    (test-assert
+     (let-values (((in out) (ideque-partition odd? (ideque))))
+       (and (ideque-empty? in) (ideque-empty? out))))
+    (test-with-random-lists (xs)
+      (let ((dq (list->ideque xs)))
+        (test-assert
+         (let-values (((in out) (ideque-partition (constantly #t) dq)))
+           (and (ideque= eqv? dq in) (ideque-empty? out))))
+        (test-assert
+         (let-values (((in out) (ideque-partition (constantly #f) dq)))
+           (and (ideque-empty? in) (ideque= eqv? dq out))))
+        (test-assert
+         (let-values (((in out)
+                       (ideque-partition number? (ideque-add-front dq 'z))))
+           (and (ideque= eqv? dq in) (ideque= eqv? (ideque 'z) out))))
+        (test-assert
+         (let-values ((dqs (ideque-partition odd? dq))
+                      (parts (partition odd? xs)))
+           (equal? parts (map ideque->list dqs))))
+        ))
+    (test-assert (type-exception (ideque-partition 0 (ideque))))
+    (test-assert (type-exception (ideque-partition odd? 0)))
+    )
+  )
 
 (test-group "ideque/searching"
  (test 3 (ideque-find number? (ideque 'a 3 'b 'c 4 'd) (lambda () 'boo)))
