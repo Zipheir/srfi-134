@@ -428,6 +428,7 @@
       (let ((dq-x (list->ideque xs))
             (dq-y (list->ideque ys))
             (dq-z (list->ideque zs)))
+        (test (zip xs) (ideque->list (ideque-zip dq-x)))
         (test (zip xs ys) (ideque->list (ideque-zip dq-x dq-y)))
         (test (zip xs ys zs) (ideque->list (ideque-zip dq-x dq-y dq-z)))
       ))
