@@ -610,45 +610,168 @@
   )
 
 (test-group "ideque/searching"
- (test 3 (ideque-find number? (ideque 'a 3 'b 'c 4 'd) (lambda () 'boo)))
- (test 'boo (ideque-find number? (ideque 'a 'b 'c 'd) (lambda () 'boo)))
- (test #f (ideque-find number? (ideque 'a 'b 'c 'd)))
- (test 4 (ideque-find-right number? (ideque 'a 3 'b 'c 4 'd) (lambda () 'boo)))
- (test 'boo (ideque-find-right number? (ideque 'a 'b 'c 'd) (lambda () 'boo)))
- (test #f (ideque-find-right number? (ideque 'a 'b 'c 'd)))
- (test '(1 3 2)
-       (ideque->list (ideque-take-while (lambda (n) (< n 5))
-                                        (ideque 1 3 2 5 8 4 6 3 4 2))))
- (test '(5 8 4 6 3 4 2)
-       (ideque->list (ideque-drop-while (lambda (n) (< n 5))
-                                        (ideque 1 3 2 5 8 4 6 3 4 2))))
- (test '(3 4 2)
-       (ideque->list (ideque-take-while-right (lambda (n) (< n 5))
-                                              (ideque 1 3 2 5 8 4 6 3 4 2))))
- (test '(1 3 2 5 8 4 6)
-       (ideque->list (ideque-drop-while-right (lambda (n) (< n 5))
-                                              (ideque 1 3 2 5 8 4 6 3 4 2))))
- (test '()
-       (ideque->list (ideque-take-while (lambda (n) (< n 5))
-                                        (ideque 5 8 4 6 3 4 2 9))))
- (test '()
-       (ideque->list (ideque-drop-while (lambda (n) (< n 5))
-                                        (ideque 1 4 3 2 3 4 2 1))))
- (test '()
-       (ideque->list (ideque-take-while-right (lambda (n) (< n 5))
-                                              (ideque 5 8 4 6 3 4 2 9))))
- (test '()
-       (ideque->list (ideque-drop-while-right (lambda (n) (< n 5))
-                                              (ideque 1 3 2 4 3 2 3 2))))
- (test '((1 3 2) (5 8 4 6 3 4 2))
-       (receive xs (ideque-span (lambda (n) (< n 5))
-                                (ideque 1 3 2 5 8 4 6 3 4 2))
-                (map ideque->list xs)))
- (test '((5 8) (4 6 3 4 2 9))
-       (receive xs (ideque-break (lambda (n) (< n 5))
-                                 (ideque 5 8 4 6 3 4 2 9))
-                (map ideque->list xs)))
- )
+  (test-group "ideque-find"
+    (test #f (ideque-find (constantly #t) (ideque)))
+    (test-with-random-ideque dq
+      (test 'z (ideque-find (constantly #f) dq (lambda () 'z)))
+      (test-assert
+       (or (ideque-empty? dq)
+           (eqv? (ideque-front dq) (ideque-find (constantly #t) dq))))
+      (test 'z (ideque-find string? dq (lambda () 'z)))
+      (test 'shoop (ideque-find symbol?
+                                (ideque-add-front
+                                 (ideque-add-back dq 'woop)
+                                 'shoop)))
+      )
+    (test-assert (type-exception (ideque-find 0 (ideque))))
+    (test-assert (type-exception (ideque-find odd? 0)))
+    )
+
+  (test-group "ideque-find-right"
+    (test #f (ideque-find-right (constantly #t) (ideque)))
+    (test-with-random-ideque dq
+      (test 'z (ideque-find-right (constantly #f) dq (lambda () 'z)))
+      (test-assert
+       (or (ideque-empty? dq)
+           (eqv? (ideque-back dq) (ideque-find-right (constantly #t) dq))))
+      (test 'z (ideque-find-right string? dq (lambda () 'z)))
+      (test 'woop (ideque-find-right symbol?
+                                     (ideque-add-front
+                                      (ideque-add-back dq 'woop)
+                                     'shoop)))
+      )
+    (test-assert (type-exception (ideque-find-right 0 (ideque))))
+    (test-assert (type-exception (ideque-find-right odd? 0)))
+    )
+
+  (test-group "ideque-take-while"
+    (test-assert (ideque-empty? (ideque-take-while (constantly #t)
+                                                   (ideque))))
+    (test-with-random-ideque dq
+      (test-assert (ideque-empty? (ideque-take-while (constantly #f) dq)))
+      (test-assert (ideque= eqv? dq (ideque-take-while (constantly #t) dq)))
+      (test-assert
+       (ideque= eqv?
+                (ideque 'z)
+                (ideque-take-while symbol? (ideque-add-front dq 'z))))
+      (test-assert
+       (ideque= eqv?
+                dq
+                (ideque-take-while number? (ideque-add-back dq 'z))))
+      )
+    (test-assert (type-exception (ideque-take-while 0 (ideque))))
+    (test-assert (type-exception (ideque-take-while odd? 0)))
+    )
+
+  (test-group "ideque-drop-while"
+    (test-assert (ideque-empty? (ideque-drop-while (constantly #t)
+                                                   (ideque))))
+    (test-with-random-ideque dq
+      (test-assert (ideque-empty? (ideque-drop-while (constantly #t) dq)))
+      (test-assert (ideque= eqv? dq (ideque-drop-while (constantly #f) dq)))
+      (test-assert
+       (ideque= eqv?
+                dq
+                (ideque-drop-while symbol? (ideque-add-front dq 'z))))
+      (test-assert
+       (ideque= eqv?
+                (ideque 'z)
+                (ideque-drop-while number? (ideque-add-back dq 'z))))
+      )
+    (test-assert (type-exception (ideque-drop-while 0 (ideque))))
+    (test-assert (type-exception (ideque-drop-while odd? 0)))
+    )
+
+  (test-group "ideque-take-while-right"
+    (test-assert
+     (ideque-empty? (ideque-take-while-right (constantly #t) (ideque))))
+    (test-with-random-ideque dq
+      (test-assert
+       (ideque-empty? (ideque-take-while-right (constantly #f) dq)))
+      (test-assert
+       (ideque= eqv? dq (ideque-take-while-right (constantly #t) dq)))
+      (test-assert
+       (ideque= eqv?
+                (ideque 'z)
+                (ideque-take-while-right symbol? (ideque-add-back dq 'z))))
+      (test-assert
+       (ideque= eqv?
+                dq
+                (ideque-take-while-right number? (ideque-add-front dq 'z))))
+      )
+    (test-assert (type-exception (ideque-take-while-right 0 (ideque))))
+    (test-assert (type-exception (ideque-take-while-right odd? 0)))
+    )
+
+  (test-group "ideque-drop-while-right"
+    (test-assert
+     (ideque-empty? (ideque-drop-while-right (constantly #t) (ideque))))
+    (test-with-random-ideque dq
+      (test-assert
+       (ideque-empty? (ideque-drop-while-right (constantly #t) dq)))
+      (test-assert
+       (ideque= eqv? dq (ideque-drop-while-right (constantly #f) dq)))
+      (test-assert
+       (ideque= eqv?
+                dq
+                (ideque-drop-while-right symbol? (ideque-add-back dq 'z))))
+      (test-assert
+       (ideque= eqv?
+                (ideque 'z)
+                (ideque-drop-while-right number? (ideque-add-front dq 'z))))
+      )
+    (test-assert (type-exception (ideque-drop-while-right 0 (ideque))))
+    (test-assert (type-exception (ideque-drop-while-right odd? 0)))
+    )
+
+  (test-group "ideque-span"
+    (test-assert
+     (let-values (((dq1 dq2) (ideque-span (constantly #t) (ideque))))
+       (and (ideque-empty? dq1) (ideque-empty? dq2))))
+    (test-with-random-ideque dq
+      (test-assert
+       (let-values (((dq1 dq2) (ideque-span (constantly #f) dq)))
+         (and (ideque-empty? dq1) (ideque= eqv? dq dq2))))
+      (test-assert
+       (let-values (((dq1 dq2) (ideque-span (constantly #t) dq)))
+         (and (ideque= eqv? dq dq1) (ideque-empty? dq2))))
+      (test-assert
+       (let-values (((dq1 dq2)
+                     (ideque-span symbol? (ideque-add-front dq 'z))))
+         (and (ideque= eqv? (ideque 'z) dq1) (ideque= eqv? dq dq2))))
+      (test-assert
+       (let-values (((dq1 dq2)
+                     (ideque-span number? (ideque-add-back dq 'z))))
+         (and (ideque= eqv? dq dq1) (ideque= eqv? (ideque 'z) dq2))))
+      )
+    (test-assert (type-exception (ideque-span 0 (ideque))))
+    (test-assert (type-exception (ideque-span odd? 0.2)))
+    )
+
+  (test-group "ideque-break"
+    (test-assert
+     (let-values (((dq1 dq2) (ideque-break (constantly #t) (ideque))))
+       (and (ideque-empty? dq1) (ideque-empty? dq2))))
+    (test-with-random-ideque dq
+      (test-assert
+       (let-values (((dq1 dq2) (ideque-break (constantly #f) dq)))
+         (and (ideque= eqv? dq dq1) (ideque-empty? dq2))))
+      (test-assert
+       (let-values (((dq1 dq2) (ideque-break (constantly #t) dq)))
+         (and (ideque-empty? dq1) (ideque= eqv? dq dq2))))
+      (test-assert
+       (let-values (((dq1 dq2)
+                     (ideque-break symbol? (ideque-add-back dq 'z))))
+         (and (ideque= eqv? dq dq1) (ideque= eqv? (ideque 'z) dq2))))
+      (test-assert
+       (let-values (((dq1 dq2)
+                     (ideque-break number? (ideque-add-front dq 'z))))
+         (and (ideque= eqv? (ideque 'z) dq1) (ideque= eqv? dq dq2))))
+      )
+    (test-assert (type-exception (ideque-break 0 (ideque))))
+    (test-assert (type-exception (ideque-break odd? 0.2)))
+    )
+  )
 
 (test-group "ideque/conversions"
  (test '(1 2 3) (generator->list (ideque->generator (ideque 1 2 3))))
