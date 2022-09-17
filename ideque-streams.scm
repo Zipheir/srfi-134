@@ -534,7 +534,7 @@
   (assert-type loc (ideque? dq))
   (assert-type loc (procedure? pred))
   (receive (head tail) (op pred (dq-f dq))
-    (if (null? tail)
+    (if (stream-null? tail)
         (receive (head. tail.) (op pred (stream-reverse (dq-r dq)))
           (values (make-deque (stream-length head)
                               head
