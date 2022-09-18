@@ -785,7 +785,7 @@
       ;; Isolate ideque->list by using basic deque ops instead of
       ;; the ->ideque conversion.
       (test xs (ideque->list
-                (fold-right ideque-add-front (ideque) xs)))
+                (fold-right (flip ideque-add-front) (ideque) xs)))
       )
     (test-assert (type-exception (ideque->list #t)))
     )
