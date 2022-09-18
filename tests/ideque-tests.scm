@@ -807,3 +807,29 @@
     (test-assert (type-exception (generator->ideque 0.2)))
     )
   )
+
+(test-group "ideque/extensions"
+  (test-group "ideque-pop-front"
+    (test-with-random-ideque dq
+      (unless (ideque-empty? dq)
+        (test (ideque-front dq)
+              (let-values (((x _dq*) (ideque-pop-front dq))) x))
+        (test-assert
+         (let-values (((_x dq*) (ideque-pop-front dq)))
+           (ideque= eqv? (ideque-remove-front dq) dq*)))))
+    (test-error (ideque-pop-front (ideque)))
+    (test-assert (type-exception (ideque-pop-front #t)))
+    )
+
+  (test-group "ideque-pop-back"
+    (test-with-random-ideque dq
+      (unless (ideque-empty? dq)
+        (test (ideque-back dq)
+              (let-values (((x _dq*) (ideque-pop-back dq))) x))
+        (test-assert
+         (let-values (((_x dq*) (ideque-pop-back dq)))
+           (ideque= eqv? (ideque-remove-back dq) dq*)))))
+    (test-error (ideque-pop-back (ideque)))
+    (test-assert (type-exception (ideque-pop-back #t)))
+    )
+  )
