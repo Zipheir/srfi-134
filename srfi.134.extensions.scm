@@ -56,8 +56,8 @@
 ;; TODO: Tune.
 (: ideque-rotate (ideque #!optional fixnum -> ideque))
 (define (ideque-rotate dq count)
-  (assert-type 'ideque-rotate-left (ideque? dq))
-  (assert-type 'ideque-rotate-left (fixnum? count))
+  (assert-type 'ideque-rotate (ideque? dq))
+  (assert-type 'ideque-rotate (fixnum? count))
   (stream-ref (stream-iterate (if (positive? count)
                                   %rotate-left-single
                                   %rotate-right-single)
