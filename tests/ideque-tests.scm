@@ -779,6 +779,17 @@
     (test-assert (type-exception (list->ideque '(0 . 0))))
     )
 
+  (test-group "ideque->list"
+    (test-assert (null? (ideque->list (ideque))))
+    (test-with-random-lists (xs)
+      ;; Isolate ideque->list by using basic deque ops instead of
+      ;; the ->ideque conversion.
+      (test xs (ideque->list
+                (fold-right ideque-add-front (ideque) xs)))
+      )
+    (test-assert (type-exception (ideque->list #t)))
+    )
+
   (test-group "ideque->generator"
     (test-assert (null? (generator->list (ideque->generator (ideque)))))
     (test-with-random-lists (xs)
