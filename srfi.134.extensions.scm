@@ -69,9 +69,7 @@
   (let ((lenf (dq-lenf dq))
         (front (dq-f dq)))
     (if (zero? (dq-lenf dq))
-        (if (zero? (dq-lenr dq))
-            (bounds-exception 'ideque-rotate-left "empty ideque" dq)
-            dq)  ; singleton
+        dq  ; null or singleton
         (make-deque (- lenf 1)
                     (stream-cdr front)
                     (+ (dq-lenr dq) 1)
@@ -82,9 +80,7 @@
   (let ((lenr (dq-lenr dq))
         (rear (dq-r dq)))
     (if (zero? (dq-lenr dq))
-        (if (zero? (dq-lenf dq))
-            (bounds-exception 'ideque-rotate-right "empty ideque" dq)
-            dq)  ; singleton
+        dq  ; null or singleton
         (make-deque (+ (dq-lenf dq) 1)
                     (stream-cons (stream-car rear) (dq-f dq))
                     (- lenr 1)
