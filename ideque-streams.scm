@@ -248,7 +248,7 @@
                   (receive (y r1 r2)
                            (stream-prefix= elt= (dq-r dq1) (dq-r dq2))
                     (and y
-                         (if (null? t1)
+                         (if (stream-null? t1)
                              (stream=? elt= t2 (stream-reverse r1))
                              (stream=? elt= t1 (stream-reverse r2))))))))))
 
