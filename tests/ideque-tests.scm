@@ -832,4 +832,41 @@
     (test-error (ideque-pop-back (ideque)))
     (test-assert (type-exception (ideque-pop-back #t)))
     )
+
+  (test-group "ideque-rotate"
+    (test-generative ((k (lambda () (pseudo-random-integer 100))))
+      (test-assert (ideque-empty? (ideque-rotate (ideque) k)))
+      (test-assert (ideque-empty? (ideque-rotate (ideque) (- k))))
+      (test-assert (ideque= eqv? (ideque 1) (ideque-rotate (ideque 1) k)))
+      (test-assert
+       (ideque= eqv? (ideque 1) (ideque-rotate (ideque 1) (- k))))
+      )
+    (test-with-random-ideque dq
+      (unless (ideque-empty? dq)
+        (let ((k (quotient (ideque-length dq) 2)))
+          (test-assert (ideque= eqv? dq (ideque-rotate dq 0)))
+          (test-assert
+           (ideque= eqv?
+                    (ideque-add-back (ideque-remove-front dq)
+                                     (ideque-front dq))
+                    (ideque-rotate dq 1)))
+          (test-assert
+           (ideque= eqv?
+                    (ideque-add-front (ideque-remove-back dq)
+                                      (ideque-back dq))
+                    (ideque-rotate dq -1)))
+          (test-assert
+           (ideque= eqv?
+                    (ideque-append (ideque-drop dq k)
+                                   (ideque-take dq k))
+                    (ideque-rotate dq k)))
+          (test-assert
+           (ideque= eqv?
+                    (ideque-append (ideque-take-right dq k)
+                                   (ideque-drop-right dq k))
+                    (ideque-rotate dq (- k))))
+          )))
+    (test-assert (type-exception (ideque-rotate #t 0)))
+    (test-assert (type-exception (ideque-rotate (ideque) 0.2)))
+    )
   )
