@@ -67,14 +67,6 @@
       )
     )
 
-  (test-group "list->ideque"
-    (test '() (ideque->list (list->ideque '())))
-    (test-with-random-lists (xs)
-      (test xs (ideque->list (list->ideque xs)))
-      )
-    (test-assert (type-exception (list->ideque #t)))
-    )
-
   (test-group "ideque-unfold"
     (test '() (ideque->list
                (ideque-unfold (lambda (n) #t)
