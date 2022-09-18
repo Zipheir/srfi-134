@@ -1,10 +1,10 @@
 ;; SRFI 158 shim
-(define (generator . args)
+(define (list->generator xs)
   (lambda ()
-    (if (null? args)
+    (if (null? xs)
         #!eof
-        (let ((x (car args)))
-          (set! args (cdr args))
+        (let ((x (car xs)))
+          (set! xs (cdr xs))
           x))))
 
 (define (generator->list gen)
@@ -774,12 +774,33 @@
   )
 
 (test-group "ideque/conversions"
- (test '(1 2 3) (generator->list (ideque->generator (ideque 1 2 3))))
- (test '() (generator->list (ideque->generator (ideque))))
- (test '(1 2 3) (ideque->list (generator->ideque (generator 1 2 3))))
- (test '() (ideque->list (generator->ideque (generator))))
- (test #t (stream-null? (ideque->stream (ideque))))
- (test '(1 2 3) (stream->list (ideque->stream (ideque 1 2 3))))
- (test #t (ideque-empty? (stream->ideque stream-null)))
- (test '(1 2 3) (ideque->list (stream->ideque (list->stream '(1 2 3)))))
- )
+  ;; 90% of the above tests lean on the list->ideque conversion, so
+  ;; these are pretty limited.
+  (test-group "list->ideque"
+    (test-assert (ideque-empty? (list->ideque '())))
+    (let ((dq (list->ideque '(1 2 3))))
+      (test 3 (ideque-length dq))
+      (test 1 (ideque-front dq))
+      (test 2 (ideque-front (ideque-remove-front dq)))
+      (test 2 (ideque-back (ideque-remove-back dq)))
+      (test 3 (ideque-back dq)))
+    (test-assert (type-exception (list->ideque '(0 . 0))))
+    )
+
+  (test-group "ideque->generator"
+    (test-assert (null? (generator->list (ideque->generator (ideque)))))
+    (test-with-random-lists (xs)
+      (test xs (generator->list (ideque->generator (list->ideque xs))))
+      )
+    (test-assert (type-exception (ideque->generator 0.2)))
+    )
+
+  (test-group "generator->ideque"
+    (test-assert
+     (ideque-empty? (generator->ideque (list->generator '()))))
+    (test-with-random-lists (xs)
+      (test xs (ideque->list (generator->ideque (list->generator xs))))
+      )
+    (test-assert (type-exception (generator->ideque 0.2)))
+    )
+  )
