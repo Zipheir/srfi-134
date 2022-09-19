@@ -80,16 +80,6 @@
            (lambda (x) (lp (stream-cdr s) x)))
           (else #f))))
 
-;; Compare two streams up to whichever shorter one.
-;; Returns the compare result and the tails of uncompared streams.
-(: stream-prefix= (procedure * * -> boolean * *))
-(define (stream-prefix= elt= a b)
-  (let loop ((a a) (b b))
-    (cond ((or (stream-null? a) (stream-null? b)) (values #t a b))
-          ((elt= (stream-car a) (stream-car b))
-           (loop (stream-cdr a) (stream-cdr b)))
-          (else (values #f a b)))))
-
 ;; Compare two streams for equality using 'elt=' to compare elements.
 (: stream=? (procedure * * -> boolean))
 (define (stream=? elt= s1 s2)
@@ -219,16 +209,12 @@
     ((elt=)
      (assert-type 'ideque= (procedure? elt=))
      #t)
-    ((elt= dq)
+    ((elt= dq1 . dqs)
      (assert-type 'ideque= (procedure? elt=))
-     (assert-type 'ideque= (ideque? dq))
-     #t)
-    ((elt= dq1 dq2) (%ideque=-binary elt= dq1 dq2))
-    ((elt= . dqs)
-     (assert-type 'ideque= (procedure? elt=))
+     (assert-type 'ideque= (ideque? dq1))
      (assert-type 'ideque= (every ideque? dqs))
-     ;; The comparison scheme is the same as srfi-1's list=.
-     (apply list= elt= (map ideque->list dqs)))))
+     (every (lambda (dq) (%ideque=-binary elt= dq1 dq))
+            dqs))))
 
 (: %ideque-same-length (ideque ideque -> boolean))
 (define (%ideque-same-length dq1 dq2)
@@ -242,16 +228,11 @@
   (assert-type 'ideque= (ideque? dq2))
   (or (eq? dq1 dq2)
       (and (%ideque-same-length dq1 dq2)
-           (receive (x t1 t2)
-                    (stream-prefix= elt= (dq-f dq1) (dq-f dq2))
-             (and x
-                  (receive (y r1 r2)
-                           (stream-prefix= elt= (dq-r dq1) (dq-r dq2))
-                    (and y
-                         (if (stream-null? t1)
-                             (stream=? elt= t2 (stream-reverse r1))
-                             (stream=? elt= t1 (stream-reverse r2))))))))))
-
+           (stream=? elt=
+                     (stream-append (dq-f dq1)
+                                    (stream-reverse (dq-r dq1)))
+                     (stream-append (dq-f dq2)
+                                    (stream-reverse (dq-r dq2)))))))
 
 (: ideque-ref (ideque fixnum -> *))
 (define (ideque-ref dq n)
