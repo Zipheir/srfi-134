@@ -89,13 +89,6 @@
            (elt= (stream-car s1) (stream-car s2))
            (stream=? elt= (stream-cdr s1) (stream-cdr s2)))))
 
-(: stream-take-right (* fixnum -> *))
-(define (stream-take-right s n)
-  (let lp ((lag s) (lead (stream-drop n s)))
-    (if (stream-null? lead)
-        lag
-        (lp (stream-cdr lag) (stream-cdr lead)))))
-
 ;;;; Basic operations
 
 (: ideque-empty? (ideque -> boolean))
@@ -262,11 +255,8 @@
         (lenr (dq-lenr dq)))
     (if (<= n lenf)
         (make-deque n (stream-take n f) 0 stream-null)
-        (let ((lenr. (- n lenf)))
-          (make-deque lenf
-                      f
-                      lenr.
-                      (stream-take-right (dq-r dq) lenr.))))))
+        (let ((lenr. (- lenr (- n lenf))))
+          (make-deque lenf f lenr. (stream-drop lenr. (dq-r dq)))))))
 
 (: %ideque-drop (ideque fixnum -> *))
 (define (%ideque-drop dq n)             ; n is within the range
