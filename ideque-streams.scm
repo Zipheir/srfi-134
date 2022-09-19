@@ -213,8 +213,9 @@
      (assert-type 'ideque= (procedure? elt=))
      (assert-type 'ideque= (ideque? dq1))
      (assert-type 'ideque= (every ideque? dqs))
-     (every (lambda (dq) (%ideque=-binary elt= dq1 dq))
-            dqs))))
+     (or (every ideque-empty? (cons dq1 dqs))
+         (every (lambda (dq) (%ideque=-binary elt= dq1 dq))
+                dqs)))))
 
 (: %ideque-same-length (ideque ideque -> boolean))
 (define (%ideque-same-length dq1 dq2)
