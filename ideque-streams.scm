@@ -209,13 +209,13 @@
     ((elt=)
      (assert-type 'ideque= (procedure? elt=))
      #t)
-    ((elt= dq1 . dqs)
+    ((elt= dq1 dq2)  ; fast case
+     (%ideque=-binary elt= dq1 dq2))
+    ((elt= . dqs)
      (assert-type 'ideque= (procedure? elt=))
-     (assert-type 'ideque= (ideque? dq1))
      (assert-type 'ideque= (every ideque? dqs))
-     (or (every ideque-empty? (cons dq1 dqs))
-         (every (lambda (dq) (%ideque=-binary elt= dq1 dq))
-                dqs)))))
+     (or (every ideque-empty? dqs)
+         (apply list= elt= (map ideque->list dqs))))))
 
 (: %ideque-same-length (ideque ideque -> boolean))
 (define (%ideque-same-length dq1 dq2)
