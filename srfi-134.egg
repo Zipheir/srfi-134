@@ -1,9 +1,9 @@
 ((synopsis "SRFI 134: Immutable deques")
- (author "John Cowan, Kevin Wortman, and Shiro Kawai")
+ (author "John Cowan, Kevin Wortman, Shiro Kawai, and Wolfgang Corcoran-Mathe")
  (maintainer "Wolfgang Corcoran-Mathe")
  (category data)
  (license "MIT")
- (version "1.0.0")
+ (version "1.1.0")
  (dependencies srfi-1 srfi-41 typed-records)
  (test-dependencies test srfi-1)
  (components

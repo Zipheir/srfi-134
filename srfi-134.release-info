@@ -4,3 +4,4 @@
 (release "0.2" whole-repo)
 (release "0.2.1" whole-repo)
 (release "1.0.0" whole-repo)
+(release "1.1.0" whole-repo)
