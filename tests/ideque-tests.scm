@@ -217,17 +217,62 @@
     )
   )
 
+;; Need some randomized tests.
 (test-group "ideque/queue-operations"
-  (test-error (ideque-front (ideque)))
-  (test-error (ideque-back (ideque)))
-  (test 1 (ideque-front (ideque 1 2 3)))
-  (test 3 (ideque-back (ideque 1 2 3)))
+  (test-group "ideque-front"
+    (test-error (ideque-front (ideque)))
+    (test 1 (ideque-front (ideque 1 2 3)))
+    (test-assert (type-exception (ideque-front 3.5)))
+    )
+
+  (test-group "ideque-back"
+    (test-error (ideque-back (ideque)))
+    (test 3 (ideque-back (ideque 1 2 3)))
+    (test-assert (type-exception (ideque-back 3.5)))
+    )
+
+  (test-group "ideque-remove-front"
+    (test-error (ideque-remove-front (ideque)))
+    (test-assert (ideque-empty? (ideque-remove-front (ideque 1))))
+    (test-assert (ideque= eqv?
+                          (ideque 2 3)
+                          (ideque-remove-front (ideque 1 2 3))))
+    (test-assert (type-exception (ideque-remove-front 3.5)))
+    )
+
+  (test-group "ideque-remove-back"
+    (test-error (ideque-remove-back (ideque)))
+    (test-assert (ideque-empty? (ideque-remove-back (ideque 1))))
+    (test-assert (ideque= eqv?
+                          (ideque 1 2)
+                          (ideque-remove-back (ideque 1 2 3))))
+    (test-assert (type-exception (ideque-remove-back 3.5)))
+    )
+
+  (test-group "ideque-add-front"
+    (test-assert (ideque= eqv?
+                          (ideque 1)
+                          (ideque-add-front (ideque) 1)))
+    (test-assert (ideque= eqv?
+                          (ideque 1 2 3)
+                          (ideque-add-front (ideque 2 3) 1)))
+    (test-assert (type-exception (ideque-add-front 3.5 1)))
+    )
+
+  (test-group "ideque-add-back"
+    (test-assert (ideque= eqv?
+                          (ideque 1)
+                          (ideque-add-back (ideque) 1)))
+    (test-assert (ideque= eqv?
+                          (ideque 1 2 3)
+                          (ideque-add-back (ideque 1 2) 3)))
+    (test-assert (type-exception (ideque-add-back 3.5 1)))
+    )
+
   (test 2 (ideque-front (ideque-remove-front (ideque 1 2 3))))
   (test 2 (ideque-back (ideque-remove-back (ideque 1 2 3))))
   (test 1 (ideque-front (ideque-remove-back (ideque 1 2 3))))
   (test 3 (ideque-back (ideque-remove-front (ideque 1 2 3))))
-  (test-assert (ideque-empty? (ideque-remove-front (ideque 1))))
-  (test-assert (ideque-empty? (ideque-remove-back (ideque 1))))
   (test 0 (ideque-front (ideque-add-front (ideque 1 2 3) 0)))
   (test 0 (ideque-back (ideque-add-back (ideque 1 2 3) 0)))
   (test 0 (ideque-front (ideque-add-back (ideque) 0)))
@@ -238,6 +283,13 @@
     (set! id (ideque-remove-front (ideque-add-back id 1)))
     (set! id (ideque-remove-front (ideque-add-back id 1)))
     (test #f (ideque-front (ideque-take-right id 12))))
+
+  (test-assert (ideque= eqv?
+                        (ideque-add-front (ideque) 1)
+                        (ideque-add-back (ideque) 1)))
+  (test-assert (ideque= eqv?
+                        (ideque-remove-front (ideque 2 2 2))
+                        (ideque-remove-back (ideque 2 2 2))))
   )
 
 (test-group "ideque/other-accessors"
