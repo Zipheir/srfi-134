@@ -290,6 +290,13 @@ The following forms are extensions to SRFI 134.  Import the
 Returns two values: the front/back element of ''ideque'' and an ideque
 of the remaining elements.  It is an error if ''ideque'' is empty.
 
+<procedure>(ideque-rotate ideque k)</procedure>
+
+Cyclically permutes ''ideque'' to the right or left, depending on
+the sign of the integer ''k''.  When ''k'' is positive, the elements
+of ''ideque'' are rotated ''k'' places to the right; when ''k'' is
+negative, they are rotated |''k''| places to the left.
+
 <procedure>(ideque->stream ideque)</procedure>
 <procedure>(stream->ideque stream)</procedure>
 
