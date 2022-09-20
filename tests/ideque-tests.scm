@@ -953,4 +953,22 @@
     (test-assert (type-exception (ideque-rotate #t 0)))
     (test-assert (type-exception (ideque-rotate (ideque) 0.2)))
     )
+
+  (test-group "ideque->stream"
+    (test-assert (stream-null? (ideque->stream (ideque))))
+    (test-with-random-lists (xs)
+      (test xs (stream->list (ideque->stream (list->ideque xs))))
+      )
+    (test-assert (type-exception (ideque->stream #t)))
+    )
+
+  (test-group "stream->ideque"
+    (test-assert (ideque-empty? (stream->ideque stream-null)))
+    (test-with-random-lists (xs)
+      (test-assert (ideque= eqv?
+                            (list->ideque xs)
+                            (stream->ideque (list->stream xs))))
+      )
+    (test-assert (type-exception (stream->ideque #t)))
+    )
   )
