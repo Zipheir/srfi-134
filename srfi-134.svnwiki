@@ -336,6 +336,7 @@ Wolfgang Corcoran-Mathe <wcm at sigwinch dot xyzzy without the zy>
 ; 0.2 : (2021-01-02) Apply upstream fixes for {{ideque-take}} and {{ideque-drop}}.
 ; 0.2.1 : (2021-10-19) Add types and increase compiler optimization setting.
 ; 1.0.0 : (2022-08-22) Improve type and bounds checks. Follow CHICKEN's internal condition protocol.
+; 1.1.0 : (2022-09-19) Switch to new banker's deque implementation. Add extensions. Greatly expand tests.
 
 == License
 
