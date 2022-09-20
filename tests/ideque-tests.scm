@@ -286,6 +286,20 @@
     (test-assert (type-exception (ideque-drop (ideque) 0.3)))
     )
 
+  ;; Ensure that concatenating the results of ideque-take & -drop
+  ;; with the same length argument produces an ideque that is equal
+  ;; to the original.
+  (test-group "ideque-take + -drop"
+    (test-with-random-ideque dq
+      (let ((k (quotient (ideque-length dq) 2)))
+        (test-assert
+         (ideque= eqv?
+                  dq
+                  (ideque-append (ideque-take dq k)
+                                 (ideque-drop dq k))))
+        ))
+    )
+
   (test-group "ideque-drop-right"
     (test-assert (ideque-empty? (ideque-drop-right (ideque) 0)))
     (test-with-random-lists (xs)
@@ -299,6 +313,20 @@
         ))
     (test-assert (type-exception (ideque-drop-right #t 0)))
     (test-assert (type-exception (ideque-drop-right (ideque) 0.3)))
+    )
+
+  ;; Ensure that concatenating the results of ideque-take-right &
+  ;; -drop-right with the same length argument produces an ideque
+  ;; that is equal to the original.
+  (test-group "ideque-take-right + -drop-right"
+    (test-with-random-ideque dq
+      (let ((k (quotient (ideque-length dq) 2)))
+        (test-assert
+         (ideque= eqv?
+                  dq
+                  (ideque-append (ideque-drop-right dq k)
+                                 (ideque-take-right dq k))))
+        ))
     )
 
   (test-group "ideque-split-at"
@@ -386,6 +414,10 @@
                                            (ideque)
                                            dq-z
                                            (ideque))))
+        ;; Naturality
+        (test-assert (ideque= eqv?
+                              (list->ideque (append xs ys))
+                              (ideque-append dq-x dq-y)))
         ))
     (test-assert (type-exception (ideque-append '(1))))
     (test-assert (type-exception (ideque-append (ideque) #t)))
