@@ -95,6 +95,7 @@
 
 (: stream->ideque (* -> ideque))
 (define (stream->ideque stream)
+  (assert-type 'stream->ideque (stream? stream))
   (make-deque (stream-length stream)
               stream
               0
