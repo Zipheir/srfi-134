@@ -15,9 +15,8 @@ See [the CHICKEN wiki page](https://wiki.call-cc.org/eggref/5/srfi-134).
 
 SRFI 134 is by Kevin Wortman, John Cowan, and Shiro Kawai.
 
-This implementation began life as the two-list sample implementation
-written by Shiro Kawai.  It was rewritten and expanded by Wolfgang
-Corcoran-Mathe.
+This implementation is the two-stream sample implementation by
+Shiro Kawai by Wolfgang Corcoran-Mathe.
 
 # Maintainer
 
