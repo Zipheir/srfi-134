@@ -5,7 +5,7 @@
  (license "MIT")
  (version "1.1.0")
  (dependencies srfi-1 srfi-41 typed-records)
- (test-dependencies test srfi-1)
+ (test-dependencies test srfi-1 test-generative)
  (components
   (extension srfi.134.internal
     (types-file)
